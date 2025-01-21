@@ -30,3 +30,12 @@ pm2 delete all
 
 npm install --save class-validator class-transformer
 npm install uuid
+
+ -Nest.js에서 TypeOrm을 사용하기 위해 연동
+npm install pg typeorm @nestjs/typeorm --save
+
+*pg - postgres
+ip 14.58.108.70
+port 15432
+user postgres
+pw ub8877

@@ -1,8 +1,8 @@
 import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreateBoardDto {
-
-  id: string;
+  @IsNotEmpty()
+  id: number;
 
   @IsString()
   @IsNotEmpty()

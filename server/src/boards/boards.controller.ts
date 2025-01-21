@@ -14,7 +14,7 @@ export class BoardsController {
    
     //get http://ubisampaju.synology.me:9100/boards/e5f33e73-2a72-4189-a2bf-f3ce0faaa70a
     @Get(':id')
-    getBoardById(@Param('id') id: string) {
+    getBoardById(@Param('id') id: number) {
         return this.boardsService.getBoards(id);
     }
 
