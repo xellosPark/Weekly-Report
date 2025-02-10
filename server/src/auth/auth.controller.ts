@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpException, HttpStatus, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { GetUser } from 'src/@common/decorators/get-user.decorator';
@@ -32,6 +32,13 @@ export class AuthController {
     @HttpCode(HttpStatus.CREATED)  // 성공 시 201 코드 반환  // 성공 시 200 코드 반환
     async signin(@Body(ValidationPipe) authDto: AuthDto) {
         return this.authService.signin(authDto);
+    }
+
+    @Get('/refresh')
+    //사용자 정의 파라미터 데코레이터 사용 @GetUser()
+    @UseGuards(AuthGuard())
+    refresh(@GetUser() auth: AuthDto) {
+        return this.authService.refreshToken(auth);
     }
 
     @Post('/test')

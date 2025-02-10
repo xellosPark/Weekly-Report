@@ -4,7 +4,9 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": true, // 엄격 모드 유지 (필요에 따라 false로 변경 가능)
+    "noUnusedLocals": false, // 사용되지 않는 지역 변수에 대해 오류 대신 경고 표시
+    "noUnusedParameters": false, // 사용되지 않는 매개변수에 대해 오류 대신 경고 표시
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

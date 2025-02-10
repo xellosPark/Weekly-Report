@@ -1,4 +1,4 @@
-import { ConflictException, HttpStatus, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpStatus, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Auth } from './auth.entity';
 import { Repository, DataSource } from 'typeorm';
@@ -10,6 +10,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+
+    private activeEmail: string | null = null; // 단일 이메일 저장 (refreshToken 때문에 필요)
 
     constructor(
         @InjectRepository(Auth)
@@ -136,6 +138,26 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
+    async refreshToken(auth: AuthDto) {
+        // user 정보는 client에서 가져와야한다.
+        console.log('user');
+        const { email } = auth;
 
+        // 저장된 이메일과 요청 이메일 비교
+        if (this.activeEmail !== email) {
+            console.error(`이메일 불일치: 저장된 이메일(${this.activeEmail}), 요청된 이메일(${email})`);
+            throw new ForbiddenException('이메일이 일치하지 않아 인증에 실패했습니다.');
+        }
+
+        const { accessToken, refreshToken } = await this.getTokens(email);
+
+        console.log("User email:", email);
+
+        // if (!auth.hashedRefreshToken) {
+        //     throw new ForbiddenException('Invalid refresh token');
+        // }
+
+        return { accessToken, refreshToken };
+    }
 
 }
