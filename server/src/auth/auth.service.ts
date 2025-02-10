@@ -4,6 +4,8 @@ import { Auth } from './auth.entity';
 import { Repository, DataSource } from 'typeorm';
 import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
@@ -13,6 +15,8 @@ export class AuthService {
         @InjectRepository(Auth)
         private userRepository: Repository<Auth>,
         private dataSource: DataSource, // 직접 쿼리 실행을 위한 DataSource
+        private jwtService: JwtService,
+        private configService: ConfigService,
     ) { }
 
     private async getMissingId(): Promise<number> {
@@ -93,12 +97,43 @@ export class AuthService {
 
         if (user && (await bcrypt.compare(password, user.password))) {
 
-            // 로그인 성공 시 응답 반환
-            return { message: 'Signin successful', status: HttpStatus.CREATED };
+            const { accessToken, refreshToken } = await this.getTokens(email)
+            console.log("Access Token:", accessToken);
+            console.log("Refresh Token:", refreshToken);
+
+
+            // 로그인 성공 시 응답 반환 (토큰 포함)
+            return {
+                message: 'Signin successful',
+                status: HttpStatus.CREATED,
+                accessToken,
+                refreshToken,
+            };
 
         } else {
             throw new UnauthorizedException('이메일 또는 비밀번호가 일치하지 않습니다.');
         }
+    }
+
+    async getTokens(email: string) {
+        const Payload = { email };
+        const [accessToken, refreshToken] = await Promise.all([
+            // jwt service 사용할수 있도록 private jwtService: JwtService
+            this.jwtService.signAsync(Payload, {
+                // secret: 'Secret8877',
+                // expiresIn: '30m', // 30분 동안 유효
+                secret: this.configService.get('JWT_SECRET'),
+                expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'),
+            }),
+            this.jwtService.signAsync(Payload, {
+                // secret: 'Secret8877',
+                // expiresIn: '30d', // 30일
+                secret: this.configService.get('JWT_SECRET'),
+                expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'),
+            })
+        ])
+
+        return { accessToken, refreshToken };
     }
 
 

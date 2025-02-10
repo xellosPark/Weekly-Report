@@ -33,7 +33,18 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-call": "off",
       '@typescript-eslint/no-explicit-any': 'off',
       'prettier/prettier': 0,
-      "@typescript-eslint/no-unused-vars": ["warn"],
+      "@typescript-eslint/no-use-before-define": ["error"],
+      "@typescript-eslint/no-shadow": ["error"],
+      "@typescript-eslint/camelcase": "off",
+      "@typescript-eslint/unbound-method": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-return": "off", // 규칙 비활성화
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { "argsIgnorePattern": "^_" }
+      ],
     },
   },
 );
