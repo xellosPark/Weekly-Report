@@ -39,3 +39,6 @@ ip 14.58.108.70
 port 15432
 user postgres
 pw ub8877
+
+
+t33
