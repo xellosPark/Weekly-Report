@@ -34,7 +34,7 @@ export class AuthController {
         return this.authService.signin(authDto);
     }
 
-    @Get('/refresh')
+    @Post('/refresh')
     //사용자 정의 파라미터 데코레이터 사용 @GetUser()
     @UseGuards(AuthGuard())
     refresh(@GetUser() auth: AuthDto) {

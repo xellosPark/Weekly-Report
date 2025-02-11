@@ -103,6 +103,10 @@ export class AuthService {
             console.log("Access Token:", accessToken);
             console.log("Refresh Token:", refreshToken);
 
+            // 이메일 저장
+            this.activeEmail = email;
+            console.log('Active email:', this.activeEmail);
+
 
             // 로그인 성공 시 응답 반환 (토큰 포함)
             return {

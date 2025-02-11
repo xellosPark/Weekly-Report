@@ -64,9 +64,9 @@ api.interceptors.response.use(
                 return null;
             } catch (refreshError) {
                 console.error('[응답 인터셉터] 토큰 갱신 실패:', refreshError);
-                //localStorage.removeItem('accessToken');
-                //localStorage.removeItem('refreshToken');
-                //window.location.href = '/login';  // 로그인 페이지로 이동
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                window.location.href = '/login';  // 로그인 페이지로 이동
                 return null;
             }
         }
