@@ -3,39 +3,39 @@
 pm2 - Node.js 애플리케이션을 관리하기 위한 도구로, 프로세스를 백그라운드에서 실행하고 모니터링함
 
 1. 설치
-npm install -g pm2
+   npm install -g pm2
 
 2. NestJS 서버 실행
-pm2 start npm --name "weekly-report-server" -- run start:dev
-
+   pm2 start npm --name "weekly-report-server" -- run start:dev
 
 3. 상태확인
-pm2 status
+   pm2 status
 
 4. 서버 종료
-pm2 stop weekly-report-server
+   pm2 stop weekly-report-server
 
 5. 시스템 재부팅 시 자동 실행 설정
-pm2 startup
-pm2 save
+   pm2 startup
+   pm2 save
 
 6. 특정 프로세스 이름으로 삭제
-pm2 delete <name>
+   pm2 delete <name>
 
 7. 특정 프로세스 ID로 삭제
 
 8. 전체 프로세스 삭제
-pm2 delete all
-
+   pm2 delete all
 
 npm install --save class-validator class-transformer
 npm install uuid
 
- -Nest.js에서 TypeOrm을 사용하기 위해 연동
+-Nest.js에서 TypeOrm을 사용하기 위해 연동
 npm install pg typeorm @nestjs/typeorm --save
 
-*pg - postgres
+\*pg - postgres
 ip 14.58.108.70
 port 15432
 user postgres
 pw ub8877
+
+PS E:\01.Source\000.GitSource\12.Weekly-Report\Weekly-Report> cp -r ./client/.next ./server/client/.next
