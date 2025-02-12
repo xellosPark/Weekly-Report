@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es6", // ES6로 타겟팅
+    "lib": ["es6", "dom"], // ES6 및 DOM 라이브러리 포함
+    "strict": true, // 타입스크립트의 엄격한 타입 검사 활성화
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "types": ["node"] // '@types/css-modules' 제거
+  }
+}

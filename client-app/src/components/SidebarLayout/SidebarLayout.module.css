@@ -1,0 +1,48 @@
+/* src/components/SidebarLayout/SidebarLayout.module.css */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  height: 93vh;
+  width: 150px;
+  background-color: #333;
+  color: white;
+  padding: 10px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.minimized {
+  width: 60px; /* 최소화 시 사이드바 너비 */
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  padding-top: 40px;
+}
+
+.menuItem {
+  color: white;
+  text-decoration: none;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.menuItem:hover {
+  background-color: #575757;
+}
+
+.bottomToggle {
+  position: absolute;
+  bottom: 20px;
+  left: 10px;
+}
+
+.toggleText {
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+}

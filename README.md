@@ -37,5 +37,3 @@ ip 14.58.108.70
 port 15432
 user postgres
 pw ub8877
-
-PS E:\01.Source\000.GitSource\12.Weekly-Report\Weekly-Report> cp -r ./client/.next ./server/client/.next
