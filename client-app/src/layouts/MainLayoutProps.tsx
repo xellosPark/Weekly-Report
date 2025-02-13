@@ -17,7 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
 
   // 사이드바 너비 조정
-  const sidebarWidth = isMinimized ? 60 : 150;
+  const sidebarWidth = isMinimized ? 40 : 150;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -37,7 +37,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           style={{
             flexGrow: 1,
             transition: "margin-left 0.3s ease", // 부드럽게 이동
-            marginLeft: isMinimized ? "72px" : "162px",
+            marginLeft: isMinimized ? "80px" : "120px",
             padding: "0px",
           }}
         >

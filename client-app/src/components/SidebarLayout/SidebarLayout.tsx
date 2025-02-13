@@ -18,14 +18,14 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({
     >
       <div className={styles.menu}>
         <Link to="/sidebar/DashBoard" className={styles.menuItem}>
-          LLM Service
+          주간업무
         </Link>
-        <Link to="/sidebar/EvalDashBoardFinal" className={styles.menuItem}>
-          LLM Ops
+        {/* <Link to="/sidebar/EvalDashBoardFinal" className={styles.menuItem}>
+          수금현황
         </Link>
         <Link to="/sidebar/view4" className={styles.menuItem}>
-          view4
-        </Link>
+          신규수주검토
+        </Link> */}
       </div>
       {/* 하단 최소화 버튼 */}
       <div
