@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import styles from "./MainPage.module.css";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
+// import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
 
 const MainPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -52,21 +52,50 @@ const MainPage: React.FC = () => {
     setReportData(newData);
   };
 
+  // 주차 계산 함수 (월별로 1주차부터 시작)
+  const getWeekNumberInMonth = (date: Date) => {
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const pastDaysOfMonth = date.getDate() - 1; // 현재 날짜에서 1을 빼서 첫째 날부터 시작
+    return Math.floor((pastDaysOfMonth + firstDayOfMonth.getDay()) / 7) + 1;
+  };
+
+  // 현재 날짜 기준 최근 6주 주차 생성
+  const generateWeeks = () => {
+    const today = new Date();
+    let weeksArray = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const targetDate = new Date();
+      targetDate.setDate(today.getDate() - i * 7); // 과거 주차로 이동
+
+      const year = targetDate.getFullYear();
+      const month = targetDate.getMonth() + 1; // 월은 0부터 시작하므로 +1
+      const weekNumber = getWeekNumberInMonth(targetDate);
+
+      weeksArray.push(`${year}년 ${month}월 ${weekNumber}주차`);
+    }
+
+    return weeksArray;
+  };
+
   // 주차 드롭다운 데이터
-  const weeks = [
-    "2025년 1월 1주차",
-    "2025년 1월 2주차",
-    "2025년 1월 3주차",
-    "2025년 1월 4주차",
-    "2025년 2월 1주차",
-    "2025년 2월 2주차",
-  ];
+  const weeks = generateWeeks();
+
+  // // 주차 드롭다운 데이터
+  // const weeks = [
+  //   "2025년 1월 1주차",
+  //   "2025년 1월 2주차",
+  //   "2025년 1월 3주차",
+  //   "2025년 1월 4주차",
+  //   "2025년 2월 1주차",
+  //   "2025년 2월 2주차",
+  // ];
 
   // 기본 선택값: 2025년 2월 1주차
   const [selectedWeek, setSelectedWeek] = useState(weeks[4]);
 
   // 파트 선택 드롭다운 데이터
-  const parts = ["1파트", "2파트", "3파트"];
+  const parts = ["자동화파트", "로봇파트", "팀장"];
   const [selectedPart, setSelectedPart] = useState(parts[0]);
 
   // 정보보고, 이슈, 메모 입력값 상태
@@ -153,10 +182,10 @@ const MainPage: React.FC = () => {
                   구분
                 </th>
                 <th colSpan={1} className={styles.weeklyReport}>
-                  2025년 2월 1주차 (2/3일 ~ 7일)
+                  {selectedWeek}
                 </th>
                 <th colSpan={2} className={styles.prevWeek}>
-                  2025년 1월 4주차 (1/20일 ~ 24일)
+                  {selectedWeek}
                 </th>
                 <th rowSpan={1} className={styles.Completion}>
                   완료예정일
