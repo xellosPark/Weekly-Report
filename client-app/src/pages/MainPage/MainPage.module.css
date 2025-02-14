@@ -59,15 +59,41 @@
 
 /* 버튼 호버 효과 */
 .saveButton:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: #8dc2fc;
+}
+
+/* 추가가 버튼 */
+.addButton {
+  background: transparent; /* 투명 배경 */
+  color: black;
+  font-size: 1em;
+  padding: 0.5em 1em;
+  border: 1px solid black; /* 외각 테두리 */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-right: 1em;
+}
+
+/* 버튼 호버 효과 */
+.addButton:hover {
+  background: #98fc8e;
+}
+
+/* 테이블을 감싸는 컨테이너 (세로 크기 고정, 전체 스크롤) */
+.reportTableContainer {
+  width: 100%;
+  max-height: 720px; /* 테이블 최대 높이 지정 */
+  overflow-x: auto; /* 가로 스크롤 가능 */
+  overflow-y: auto; /* 세로 스크롤 가능 */
+  display: block; /* 블록 요소로 설정하여 스크롤 적용 */
+  border: 1px solid #ddd;
 }
 
 /* 업무보고 테이블 스타일 */
 .reportTable {
   width: 100%;
   border-collapse: collapse;
-  text-align: center;
-  font-size: 0.9em;
 }
 
 /* 테이블 헤더 및 셀 스타일 */
@@ -78,7 +104,8 @@
 
 .reportTable td {
   border: 1px solid black;
-  font-size: 0.8em;
+  text-align: center !important; /* 가로 가운데 정렬 */
+  vertical-align: middle !important; /* 세로 가운데 정렬 */
 }
 
 /* 헤더 스타일 */
@@ -90,13 +117,13 @@
 .Completion {
   background-color: #dce6f1; /* 연한 파란색 */
   font-weight: bold;
-  width: 5%;
+  width: 6%;
 }
 
 .Progress {
   background-color: #dce6f1; /* 연한 파란색 */
   font-weight: bold;
-  width: 4%;
+  width: 5%;
 }
 
 /* 2월 1주차 컬럼 */
@@ -108,7 +135,7 @@
 
 /* 1월 4주차 컬럼 */
 .prevWeek {
-  background-color: #ffcccc; /* 연한 빨강 */
+  background-color: #f8d6cc; /* 연한 빨강 */
   font-weight: bold;
 }
 
@@ -118,6 +145,10 @@
   max-height: 70px; /* 최대 높이 설정 */
   vertical-align: top; /* 텍스트가 위쪽 정렬되도록 설정 */
   overflow: hidden; /* 기본적으로 넘치지 않도록 설정 */
+}
+
+.mainscrollableCell {
+  font-size: 0.9em;
 }
 
 /* 입력 가능한 텍스트 영역 (textarea) */
@@ -299,11 +330,11 @@
 } */
 
 .section2 {
-  background-color: #e7f1ef;
+  background-color: #f4e6fc;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 0px;
+  padding: 20px 0px;
   position: relative;
   overflow: hidden;
 }
@@ -373,4 +404,8 @@
   .reportTable {
     font-size: 0.9em;
   }
+}
+
+.reportTable {
+  max-height: 150px;
 }
