@@ -1,9 +1,25 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./MainPage.module.css";
 // import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
 
 const MainPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [weeks, setWeeks] = useState<number[]>(
+    Array.from({ length: 52 }, (_, i) => i + 1)
+  ); // 1~52주 배열
+  const [currentWeek, setCurrentWeek] = useState<number | null>(null); // 현재 주차 저장
+  const [previousWeek, setPreviousWeek] = useState<number | null>(null); // 이전 주차 저장
+  const [recentWeeks, setRecentWeeks] = useState<(number | string)[]>([]); // 최근 6주 저장
+
+  // 파트 선택 드롭다운 데이터
+  const parts = ["자동화파트", "로봇파트", "팀장"];
+  const [selectedPart, setSelectedPart] = useState(parts[0]);
+
+  // 정보보고, 이슈, 메모 입력값 상태
+  const [infoContent, setInfoContent] = useState("없음");
+  const [issueContent, setIssueContent] = useState("없음");
+  const [memoContent, setMemoContent] = useState("없음");
 
   // 스크롤 이동 함수 (좌우 스크롤)
   const scroll = (direction: number) => {
@@ -52,34 +68,55 @@ const MainPage: React.FC = () => {
     setReportData(newData);
   };
 
-  // 주차 계산 함수 (월별로 1주차부터 시작)
-  const getWeekNumberInMonth = (date: Date) => {
-    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    const pastDaysOfMonth = date.getDate() - 1; // 현재 날짜에서 1을 빼서 첫째 날부터 시작
-    return Math.floor((pastDaysOfMonth + firstDayOfMonth.getDay()) / 7) + 1;
+  // 현재 날짜 기준으로 주차를 계산하는 함수
+  const getWeekNumber = (date: Date): number => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+
+    // 첫 번째 월요일 찾기
+    const firstMonday = new Date(firstDayOfYear);
+    firstMonday.setDate(
+      firstDayOfYear.getDate() + ((1 - firstDayOfYear.getDay() + 7) % 7)
+    );
+
+    // 현재 날짜와 첫 번째 월요일 사이의 차이를 밀리초 단위로 계산
+    const diff: number = date.getTime() - firstMonday.getTime(); // getTime()으로 명확하게 숫자로 변환
+
+    // 1주일(7일)을 기준으로 몇 번째 주인지 계산
+    return Math.ceil(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
   };
 
-  // 현재 날짜 기준 최근 6주 주차 생성
-  const generateWeeks = () => {
-    const today = new Date();
-    let weeksArray = [];
+  // 테스트 실행
+  console.log(getWeekNumber(new Date())); // 현재 주차 출력
 
-    for (let i = 5; i >= 0; i--) {
-      const targetDate = new Date();
-      targetDate.setDate(today.getDate() - i * 7); // 과거 주차로 이동
+  // 특정 주차가 몇 월 몇 주인지 계산하는 함수
+  const getMonthWeekLabel = (weekNumber: number): string => {
+    // 1월 1일부터 주차를 나누어 월을 계산
+    const firstDayOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const targetDate = new Date(firstDayOfYear);
+    targetDate.setDate(firstDayOfYear.getDate() + (weekNumber - 1) * 7);
 
-      const year = targetDate.getFullYear();
-      const month = targetDate.getMonth() + 1; // 월은 0부터 시작하므로 +1
-      const weekNumber = getWeekNumberInMonth(targetDate);
+    const month: number = targetDate.getMonth() + 1; // 월 (0부터 시작이므로 +1)
+    const weekOfMonth: number = Math.ceil(targetDate.getDate() / 7); // 해당 월의 몇 번째 주인지 계산
 
-      weeksArray.push(`${year}년 ${month}월 ${weekNumber}주차`);
-    }
-
-    return weeksArray;
+    return `${month}월 ${weekOfMonth}주차`;
   };
+
+  useEffect(() => {
+    const weekNow: number = getWeekNumber(new Date()); // 현재 주차 계산
+    setCurrentWeek(weekNow);
+    setPreviousWeek(weekNow > 1 ? weekNow + 1 : null); // 이전 주차 설정 (1주차일 경우 null)
+
+    // 현재 주차 기준으로 최근 6주 찾기 (숫자가 아닌 "2월 3주차" 형식으로 변환)
+    const last6Weeks: string[] = weeks
+      .filter((week) => week <= weekNow) // 현재 주차 이하만 필터링
+      .slice(-6) // 최근 6주 선택
+      .map((week) => getMonthWeekLabel(week)); // 숫자를 "X월 Y주차" 형식으로 변환
+
+    setRecentWeeks(last6Weeks); // 변환된 최근 6주를 저장
+  }, [weeks]);
 
   // 주차 드롭다운 데이터
-  const weeks = generateWeeks();
+  const sixweeks = recentWeeks;
 
   // // 주차 드롭다운 데이터
   // const weeks = [
@@ -90,18 +127,6 @@ const MainPage: React.FC = () => {
   //   "2025년 2월 1주차",
   //   "2025년 2월 2주차",
   // ];
-
-  // 기본 선택값: 2025년 2월 1주차
-  const [selectedWeek, setSelectedWeek] = useState(weeks[4]);
-
-  // 파트 선택 드롭다운 데이터
-  const parts = ["자동화파트", "로봇파트", "팀장"];
-  const [selectedPart, setSelectedPart] = useState(parts[0]);
-
-  // 정보보고, 이슈, 메모 입력값 상태
-  const [infoContent, setInfoContent] = useState("없음");
-  const [issueContent, setIssueContent] = useState("없음");
-  const [memoContent, setMemoContent] = useState("없음");
 
   // 정보보고, 이슈, 메모 입력 변경 핸들러
   const handleInputChange = (
@@ -128,6 +153,25 @@ const MainPage: React.FC = () => {
     }
   };
 
+  // "2월 1주차" 형식에서 주차 숫자로 변환하는 함수
+  const parseWeekLabelToNumber = (label: string): number | null => {
+    const match = label.match(/\d+/g); // 숫자만 추출 (예: ["2", "1"] for "2월 1주차")
+    return match && match.length === 2
+      ? (parseInt(match[0]) - 1) * 4 + parseInt(match[1])
+      : null;
+  };
+
+  // 드롭다운 변경 시 주차 업데이트
+  const handleWeekChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLabel = event.target.value;
+    const selectedWeek = parseWeekLabelToNumber(selectedLabel);
+
+    if (selectedWeek !== null) {
+      setCurrentWeek(selectedWeek); // 선택한 주차 업데이트
+      setPreviousWeek(selectedWeek + 1); // 선택한 주차 + 1 업데이트
+    }
+  };
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.section1}>
@@ -149,10 +193,10 @@ const MainPage: React.FC = () => {
 
             <select
               className={styles.dropdown}
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
+              value={currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}
+              onChange={handleWeekChange}
             >
-              {weeks.map((week, index) => (
+              {sixweeks.map((week, index) => (
                 <option key={index} value={week}>
                   {week}
                 </option>
@@ -161,7 +205,10 @@ const MainPage: React.FC = () => {
           </div>
 
           {/* 제목을 가운데 정렬 */}
-          <h3 className={styles.title}>{selectedWeek} 업무보고</h3>
+          <h3 className={styles.title}>
+            {currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}{" "}
+            업무보고
+          </h3>
 
           <div>
             {/* 행 추가 버튼 */}
@@ -182,10 +229,10 @@ const MainPage: React.FC = () => {
                   구분
                 </th>
                 <th colSpan={1} className={styles.weeklyReport}>
-                  {selectedWeek}
+                  {previousWeek !== null ? getMonthWeekLabel(previousWeek) : ""}
                 </th>
                 <th colSpan={2} className={styles.prevWeek}>
-                  {selectedWeek}
+                  {currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}
                 </th>
                 <th rowSpan={1} className={styles.Completion}>
                   완료예정일

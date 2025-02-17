@@ -37,7 +37,13 @@ const App: React.FC = () => {
                   <MainPage /> {/* MainPage 컴포넌트 렌더링 */}
                 </MainLayout>
               ) : (
-                <Navigate to="/login" />
+                // <Navigate to="/login" />
+                <MainLayout
+                  timeRemaining={timeRemaining}
+                  onLogout={handleLogout}
+                >
+                  <MainPage /> {/* MainPage 컴포넌트 렌더링 */}
+                </MainLayout>
               )
             }
           />
