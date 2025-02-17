@@ -134,3 +134,16 @@ onDelete: 'CASCADE'를 추가하면 User가 삭제될 때 Auth 정보도 자동 
 다양한 로그인 방식 지원(OAuth, 비밀번호) → @ManyToOne 추천
 👉 @OneToOne을 사용하면 단순하게 관리할 수 있고, 보안적으로도 가장 일반적인 방식입니다.
 추가적인 기능이 필요하면 @ManyToOne으로 확장하는 것이 좋습니다.
+
+// Access Token이 만료되었을 때 Refresh 요청 (자동으로 쿠키 전송) 참고
+async function refreshToken() {
+  const response = await fetch('/auth/refresh', {
+    method: 'POST',
+    credentials: 'include', // ✅ HTTP-Only Cookie 자동 전송
+  });
+
+  const data = await response.json();
+  if (data.accessToken) {
+    localStorage.setItem('accessToken', data.accessToken); // 새 Access Token 저장
+  }
+}

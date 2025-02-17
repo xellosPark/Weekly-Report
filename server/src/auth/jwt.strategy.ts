@@ -4,30 +4,31 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from "typeorm";
 import { Auth } from './auth.entity';
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { User } from "src/user/user.entity";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @InjectRepository(Auth)
-    private userRepository: Repository<Auth>, // User 엔티티에 대한 TypeORM 리포지토리 주입
+    @InjectRepository(User)
+    private userRepository: Repository<User>, // User 엔티티에 대한 TypeORM 리포지토리 주입
   ) {
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET || 'UB8877', // JWT 토큰 서명에 사용되는 비밀 키 (프로덕션 환경에서는 환경 변수 사용)
+      secretOrKey: process.env.JWT_SECRET || 'Secret8877', // JWT 토큰 서명에 사용되는 비밀 키 (프로덕션 환경에서는 환경 변수 사용)
     });
   }
 
   // JWT 토큰의 페이로드를 검증하는 메서드
   async validate(payload: { email: string }) {
 
-    console.log("시작:");
+    //console.log("시작:", payload);
     const { email } = payload;
     // 사용자 이름으로 사용자 찾기
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.userRepository.findOne({where: { email }});
 
     // 사용자 조회 로그 추가
-    console.log("조회된 사용자 정보:");
+    //console.log("조회된 사용자 정보:", user);
 
     if (!user) {
       // 사용자가 없으면 UnauthorizedException 예외 발생

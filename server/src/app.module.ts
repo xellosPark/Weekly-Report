@@ -4,13 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // isGlobal 옵션을 true로 설정하여 ConfigModule을 전역적으로 사용 가능하게 함.
     TypeOrmModule.forRoot(typeORMConfig),
     BoardsModule,
-    AuthModule
+    AuthModule,
+    UserModule
   ],
   controllers: [],
   //ConfigService란?
