@@ -254,20 +254,18 @@ const MainPage: React.FC = () => {
               {reportData.map((row, index) => (
                 <tr key={index}>
                   {Object.keys(row).map((field) => (
-                    <td
-                      key={field}
-                      className={
-                        field === "progress" ||
-                        field === "allprogress" ||
-                        field === "completion"
-                          ? `${styles.mainscrollableCell} ${styles.PlainTextCell}`
-                          : styles.mainscrollableCell
-                      }
-                    >
+                    <td key={field} className={styles.mainscrollableCell}>
                       {field === "progress" ||
                       field === "allprogress" ||
                       field === "completion" ? (
-                        row[field as keyof typeof row]
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          value={row[field as keyof typeof row]}
+                          onChange={(e) =>
+                            handleMainChange(index, field, e.target.value)
+                          }
+                        />
                       ) : (
                         <textarea
                           className={styles.MaintextArea}

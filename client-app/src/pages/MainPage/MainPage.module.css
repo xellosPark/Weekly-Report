@@ -165,6 +165,15 @@
   font-family: "Noto Sans KR", Arial, sans-serif; /* 원하는 폰트 적용 */
 }
 
+.inputField {
+  width: 90%;
+  text-align: center; /* 가운데 정렬 */
+  font-size: 15px;
+  border: none; /* ✅ 테두리 제거 */
+  outline: none; /* ✅ 포커스 시 테두리 제거 */
+  background-color: transparent; /* ✅ 배경색 투명하게 */
+}
+
 /* 두 번째 섹션 */
 /* .section2 {
   flex: 1;
