@@ -2,6 +2,8 @@ import { useState } from "react";
 import styles from "./LoginPage.module.css";
 import axios from "axios";
 import api from "../../utils/api";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 // 서버 응답 타입 정의
 interface LoginResponse {
@@ -18,6 +20,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [testMessage, setTestMessage] = useState<string | null>(null);
+  const { login } = useAuth();
+
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
 
   const handleLogin = async () => {
     try {
@@ -29,10 +34,11 @@ export default function LoginPage() {
       );
 
       if (response.status === 201) {
-        alert("로그인 성공!");
-        const { accessToken, refreshToken } = response.data;
+        const { accessToken } = response.data;
         localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        login(accessToken);
+
+        navigate("/DashBoard"); // 로그인 성공 후 페이지 이동
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {

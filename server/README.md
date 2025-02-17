@@ -147,3 +147,5 @@ async function refreshToken() {
     localStorage.setItem('accessToken', data.accessToken); // 새 Access Token 저장
   }
 }
+
+npm install passport-local cookie-parser
