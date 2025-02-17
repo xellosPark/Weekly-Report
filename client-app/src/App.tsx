@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
@@ -23,38 +22,33 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div>
-        <Routes>
-          {/* 로그인한 상태일 때 메인 페이지로 이동 */}
-          <Route
-            path="/"
-            element={
-              token ? (
-                <MainLayout
-                  timeRemaining={timeRemaining}
-                  onLogout={handleLogout}
-                >
-                  <MainPage /> {/* MainPage 컴포넌트 렌더링 */}
-                </MainLayout>
-              ) : (
-                // <Navigate to="/login" />
-                <MainLayout
-                  timeRemaining={timeRemaining}
-                  onLogout={handleLogout}
-                >
-                  <MainPage /> {/* MainPage 컴포넌트 렌더링 */}
-                </MainLayout>
-              )
-            }
-          />
+      <Routes>
+        {/* 기본 루트: 로그인 상태이면 DashBoard로 이동 */}
+        <Route
+          path="/"
+          element={<Navigate to={token ? "/DashBoard" : "/login"} />}
+        />
 
-          {/* 로그인 페이지 */}
-          <Route
-            path="/login"
-            element={!token ? <LoginPage /> : <Navigate to="/" />}
-          />
-        </Routes>
-      </div>
+        {/* 로그인 페이지 */}
+        <Route
+          path="/login"
+          element={!token ? <LoginPage /> : <Navigate to="/DashBoard" />}
+        />
+
+        {/* DashBoard 페이지 (MainLayout + MainPage) */}
+        <Route
+          path="/DashBoard"
+          element={
+            token ? (
+              <MainLayout timeRemaining={timeRemaining} onLogout={handleLogout}>
+                <MainPage />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
     </Router>
   );
 };

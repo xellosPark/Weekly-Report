@@ -17,6 +17,9 @@
 .header-content {
   display: flex;
   align-items: center;
+  margin-left: auto; /* 오른쪽 정렬 */
+  margin-right: 50px;
+  gap: 10px; /* 요소 간 간격 */
 }
 
 .time-remaining {
