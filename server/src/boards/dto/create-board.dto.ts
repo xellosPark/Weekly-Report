@@ -3,9 +3,9 @@ import { IsString, IsNotEmpty, IsBoolean, IsOptional, IsInt } from 'class-valida
 
 export class BoardDto {
   
-  @IsInt()
-  @Transform(({ value }) => value ?? 0) // 값이 없으면 0으로 설정
-  part: number;
+  // @IsInt()
+  // @Transform(({ value }) => value ?? 0) // 값이 없으면 0으로 설정
+  // part: number;
 
   @IsString()
   @IsNotEmpty({ message: '제목 포맷은 "2025년도 1월 1주차" 입니다.'})

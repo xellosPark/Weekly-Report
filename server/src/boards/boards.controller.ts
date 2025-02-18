@@ -59,6 +59,7 @@ export class BoardsController {
         }
      */
     @Post(':id')
+    @UseGuards(AuthGuard('jwt'))
     async createBoard(@Param("id", ParseIntPipe) id: number, @Body() createBoardDto: BoardDto) {
         console.log('id', id);
         

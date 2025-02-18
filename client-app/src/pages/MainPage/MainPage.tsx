@@ -3,6 +3,7 @@ import styles from "./MainPage.module.css";
 import axios from "axios";
 import api from "../../utils/api";
 import { EditBoard, LoadBoard, SaveBoard } from "../../utils/boardApi";
+import { useAuth } from "../../context/AuthContext";
 // import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
 
 const MainPage: React.FC = () => {
@@ -58,7 +59,8 @@ const MainPage: React.FC = () => {
   const [data, setData] = useState<Board[]>([]);
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
-
+  const { isAuth } = useAuth();
+  
   // 스크롤 이동 함수 (좌우 스크롤)
   const scroll = (direction: number) => {
     if (scrollRef.current) {
@@ -146,20 +148,25 @@ const MainPage: React.FC = () => {
   };
 
   const loadBoard = async () => {
-    const resData = await LoadBoard();
-    
+    const id = Number(localStorage.getItem("userId"));
+	const team = Number(localStorage.getItem("userTeam"));
+    const resData = await LoadBoard(id, team);
     setData(resData);
     setIsBoardLoaded(true);
   }
 
   // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
+    //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
+    const team = Number(localStorage.getItem("userTeam"));
+    console.log('team 변경되었을때 탄다', team);
+    
     const dateNow = new Date();
     const weekNow = getWeekNumber(dateNow);
     const yearNow = dateNow.getFullYear();
 
-    console.log("📅 현재 날짜:", dateNow);
-    console.log("📆 현재 주차 (weekNow):", weekNow);
+    //console.log("📅 현재 날짜:", dateNow);
+    //console.log("📆 현재 주차 (weekNow):", weekNow);
 
     if (yearNow !== currentYear) {
       // ✅ 연도 변경 시 48~52주차 + 새로운 1주차 유지
@@ -182,26 +189,24 @@ const MainPage: React.FC = () => {
     setSelectedWeek(weekNow);
     checkNextWeekAvailable();
 
-    //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
-    const team = Number(localStorage.getItem("userTeam"));
-
     //🔹 team 값에 따라 필터링
     if (team === 10) {
-      console.log('진행', team);
-      
-        setFilteredParts(parts); // 모든 파트 표시
-        setSelectedPart(parts[parts.length - 1]);
+      //console.log('진행', team);
+      setFilteredParts(parts); // 모든 파트 표시
+      setSelectedPart(parts[parts.length - 1]);
+    } else if (team === 0) {
+      return;
     } else {
-      console.log('진행', team);
+      //console.log('진행', team);
       const filtered = parts.filter(part => part.value === team);
-      console.log('filtered', filtered);
+      //console.log('filtered', filtered);
       
       setFilteredParts(filtered.length > 0 ? filtered : [{ label: "선택 없음", value: -1 }]);
       setSelectedPart(filtered[0]);
     }
 
       loadBoard();
-  }, []);
+  }, [isAuth]);
 
   // 🔹 `selectedWeek` 변경 시 `previousWeek`, `nextWeek` 업데이트
   useEffect(() => {
@@ -210,7 +215,6 @@ const MainPage: React.FC = () => {
       setPreviousWeek(selectedWeek > 1 ? selectedWeek - 1 : 52);
       setNextWeek(selectedWeek < 52 ? selectedWeek + 1 : 1);
     }
-    console.log('selectedWeek', selectedWeek);
     
   }, [selectedWeek]);
 
@@ -218,7 +222,6 @@ const MainPage: React.FC = () => {
     if (!isBoardLoaded || !currentWeek) return;
 
     const loadData = data.filter(data => data.title === getMonthWeekLabel(currentWeek) && data.part === selectedPart.value);
-    //console.log('loadData', loadData);
 
     if (loadData.length === 0) {
       setReportData([
@@ -353,10 +356,8 @@ const MainPage: React.FC = () => {
 
   const OnSave = async () => {
     console.log('reportData', reportData);
-    const userPart = localStorage.getItem('userTeam');
 
     const board = {
-      part: userPart,
       title: currentWeek !== null ? getMonthWeekLabel(currentWeek) : "",
       category: reportData.map(obj => obj.category).join(", "),
       currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join(", "),
@@ -370,20 +371,10 @@ const MainPage: React.FC = () => {
       memo: memoContent
     };
     
-    //console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
-    const id = Number(localStorage.getItem("userId"));
+    console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
 
-    // const response = await axios.post(
-    //   `http://localhost:9801/boards/${id}`,
-    //   JSON.stringify(board), // JSON 데이터 전송
-    //   {
-    //     headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
-    //   }
-    // );
-
-    const resData = SaveBoard(board);
-
-    console.log('response', resData);
+    const resData = await SaveBoard(board);
+    console.log('Save response', resData);
   }
 
   const OnEdit = async () => {
@@ -401,23 +392,9 @@ const MainPage: React.FC = () => {
     };
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
-    console.log('select id', selectOriginalData?.id);
-    
-    const token = localStorage.getItem("accessToken");
-      // const response = await axios.patch(
-      //   `http://localhost:9801/boards/edit/${selectOriginalData?.id}`,
-      //   board, // JSON 데이터 전송
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json", // ✅ JSON 명시
-      //       "Authorization": `Bearer ${token}`, // JWT 토큰 포함
-      //     },
-      //   }
-      // );
-      const resData = EditBoard(board, selectOriginalData?.id);
-
-
-      console.log('response', resData);
+    //console.log('select id', selectOriginalData?.id);
+    const resData = EditBoard(board, selectOriginalData?.id);
+    console.log('Edit response', resData);
   }
 
   return (
@@ -429,7 +406,7 @@ const MainPage: React.FC = () => {
           <div className={styles.dropdownContainer}>
             <select
               className={styles.dropdown}
-              value={selectedPart.value}
+              value={selectedPart?.value}
               onChange={(e) => {
                 const selectedValue = Number(e.target.value); // string -> number 변환
                 const selected = parts.find(part => part.value === selectedValue);

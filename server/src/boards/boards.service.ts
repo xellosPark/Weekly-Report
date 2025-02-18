@@ -27,7 +27,7 @@ export class BoardsService {
     
     const createBoard = this.boardRepository.create({
       user,
-      part: userId,
+      part: user.team,
       title: boardDto.title,
       category: boardDto.category,
       previousWeekPlan: boardDto.previousWeekPlan,

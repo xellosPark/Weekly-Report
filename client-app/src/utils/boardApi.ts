@@ -4,18 +4,19 @@ const id = Number(localStorage.getItem("userId"));
 const team = Number(localStorage.getItem("userTeam"));
 /* GET */
 
-export const LoadBoard = async () => {
+// 로그인 하자마자 바로 업데이트가 필요한 부분으로 param으로 전달
+export const LoadBoard = async (id_: number, team_: number) => {
     let response = null;
     if (team === 10) {
         response = await api.get(
-          `http://localhost:9801/boards/${id}`,
+          `http://localhost:9801/boards/${id_}`,
           {
             headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
           }
         );
       } else {
         response = await api.get(
-          `http://localhost:9801/boards?id=${id}&team=${team}`,
+          `http://localhost:9801/boards?id=${id_}&team=${team_}`,
           {
             headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
           }

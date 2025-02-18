@@ -4,6 +4,7 @@ import axios from "axios";
 import api from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Login } from "../../utils/userApi";
 
 // 서버 응답 타입 정의
 interface LoginResponse {
@@ -39,11 +40,8 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       console.log("로그인 요청 데이터:", { email: id, password });
-
-      const response = await axios.post<LoginResponse>(
-        "http://localhost:9801/auth/signin",
-        { email: id, password: password }
-      );
+      
+      const response = await Login(id, password);
 
       if (response.status === 201) {
         const { accessToken, userData } = response.data;
@@ -81,31 +79,46 @@ export default function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>로그인</h1>
-      <input
-        className={styles.inputField}
-        type="text"
-        placeholder="아이디"
-        value={id}
-        onChange={(e) => setId(e.target.value)}
-      />
-      <input
-        className={styles.inputField}
-        type="password"
-        placeholder="비밀번호"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {errorMessage && <p className={styles.error}>{errorMessage}</p>}
-      <button className={styles.button} onClick={handleLogin}>
-        로그인
-      </button>
+      {/* ✅ 로그인 박스 */}
+      <div className={styles.loginBox}>
+        <h1 className={styles.title}>Weekly-Report</h1>
 
-      <h1 className={styles.title}>테스트 API 호출</h1>
-      <button className={styles.button} onClick={handleTest}>
-        테스트 API 호출
-      </button>
-      {testMessage && <p>{testMessage}</p>}
+        {/* ✅ 로그인 폼 */}
+        {/* <form className={styles.form}> */}
+        <div className={styles.inputGroup}>
+          {/* ✅ 아이디 입력 필드 */}
+          <input
+            className={styles.inputField}
+            type="text"
+            placeholder="아이디를 입력해 주세요"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
+          />
+
+          {/* ✅ 비밀번호 입력 필드 */}
+          <input
+            className={styles.inputField}
+            type="password"
+            placeholder="비밀번호를 입력해 주세요"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value.trim())
+            } /* ✅ 공백 방지 */
+            autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
+          />
+
+          {/* ✅ 로그인 버튼 */}
+          <button className={styles.button} onClick={handleLogin}>
+            로그인
+          </button>
+        </div>
+
+        {/* ✅ 아이디 / 비밀번호 찾기 링크 */}
+        <div className={styles.findLinks}>
+          {/* <a href="#">아이디 찾기</a> | <a href="#">비밀번호 찾기</a> */}
+        </div>
+      </div>
     </div>
   );
 }
