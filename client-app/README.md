@@ -17,6 +17,7 @@ npm install --save-dev @types/jest
 }
 
 npm install axios
+npm install @types/cookie-parser express @types/bcrypt
 
 global.d.ts 파일을 src 폴더에 생성합니다.
 해당 파일에 CSS 모듈에 대한 타입 정의를 추가합니다.
