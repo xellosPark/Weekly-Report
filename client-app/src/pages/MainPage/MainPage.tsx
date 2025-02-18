@@ -11,6 +11,12 @@ const MainPage: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState<number | null>(null); // 현재 주차 저장
   const [previousWeek, setPreviousWeek] = useState<number | null>(null); // 이전 주차 저장
   const [recentWeeks, setRecentWeeks] = useState<(number | string)[]>([]); // 최근 6주 저장
+  const [nextWeek, setNextWeek] = useState<number | null>(null); // 추가할 수 있는 주차 저장장
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null); // 선택한 주차 저장장
+  const [currentYear, setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [nextWeekCheck, setNextWeekCheck] = useState<number | null>(null); // 추가할 수 있는 주차 저장장
 
   // 파트 선택 드롭다운 데이터
   const parts = ["자동화파트", "로봇파트", "팀장"];
@@ -86,7 +92,7 @@ const MainPage: React.FC = () => {
   };
 
   // 테스트 실행
-  console.log(getWeekNumber(new Date())); // 현재 주차 출력
+  //console.log(getWeekNumber(new Date())); // 현재 주차 출력
 
   // 특정 주차가 몇 월 몇 주인지 계산하는 함수
   const getMonthWeekLabel = (weekNumber: number): string => {
@@ -98,35 +104,54 @@ const MainPage: React.FC = () => {
     const month: number = targetDate.getMonth() + 1; // 월 (0부터 시작이므로 +1)
     const weekOfMonth: number = Math.ceil(targetDate.getDate() / 7); // 해당 월의 몇 번째 주인지 계산
 
+    // ✅ 변환 과정 디버깅 로그 추가
+    // console.log(`🟢 변환 과정 - 입력 주차: ${weekNumber}`);
+    // console.log(`📆 기준 날짜: ${targetDate.toISOString().split("T")[0]}`);
+    // console.log(`✅ 변환된 월: ${month}, 변환된 주차: ${weekOfMonth}`);
+    // console.log(`🎯 최종 결과: ${month}월 ${weekOfMonth}주차`);
+
     return `${month}월 ${weekOfMonth}주차`;
   };
 
+  // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
-    const weekNow: number = getWeekNumber(new Date()); // 현재 주차 계산
+    const dateNow = new Date();
+    const weekNow = getWeekNumber(dateNow);
+    const yearNow = dateNow.getFullYear();
+
+    console.log("📅 현재 날짜:", dateNow);
+    console.log("📆 현재 주차 (weekNow):", weekNow);
+
+    if (yearNow !== currentYear) {
+      // ✅ 연도 변경 시 48~52주차 + 새로운 1주차 유지
+      setCurrentYear(yearNow);
+      setRecentWeeks([48, 49, 50, 51, 52, 1]);
+    } else {
+      // ✅ 최근 6주 유지 + 새로 추가된 주차 포함
+      setRecentWeeks((prevWeeks) => {
+        const last6Weeks = [];
+        for (let i = 5; i >= 0; i--) {
+          let weekNum = weekNow - i;
+          if (weekNum <= 0) weekNum += 52; // ✅ 1주차 이전이면 52주차로 변환
+          last6Weeks.push(weekNum);
+        }
+        return [...new Set([...last6Weeks, ...prevWeeks])]; // ✅ 중복 방지
+      });
+    }
+
     setCurrentWeek(weekNow);
-    setPreviousWeek(weekNow > 1 ? weekNow + 1 : null); // 이전 주차 설정 (1주차일 경우 null)
+    setSelectedWeek(weekNow);
+    checkNextWeekAvailable();
+  }, []);
 
-    // 현재 주차 기준으로 최근 6주 찾기 (숫자가 아닌 "2월 3주차" 형식으로 변환)
-    const last6Weeks: string[] = weeks
-      .filter((week) => week <= weekNow) // 현재 주차 이하만 필터링
-      .slice(-6) // 최근 6주 선택
-      .map((week) => getMonthWeekLabel(week)); // 숫자를 "X월 Y주차" 형식으로 변환
-
-    setRecentWeeks(last6Weeks); // 변환된 최근 6주를 저장
-  }, [weeks]);
-
-  // 주차 드롭다운 데이터
-  const sixweeks = recentWeeks;
-
-  // // 주차 드롭다운 데이터
-  // const weeks = [
-  //   "2025년 1월 1주차",
-  //   "2025년 1월 2주차",
-  //   "2025년 1월 3주차",
-  //   "2025년 1월 4주차",
-  //   "2025년 2월 1주차",
-  //   "2025년 2월 2주차",
-  // ];
+  // 🔹 `selectedWeek` 변경 시 `previousWeek`, `nextWeek` 업데이트
+  useEffect(() => {
+    if (selectedWeek !== null) {
+      setCurrentWeek(selectedWeek);
+      setPreviousWeek(selectedWeek > 1 ? selectedWeek - 1 : 52);
+      setNextWeek(selectedWeek < 52 ? selectedWeek + 1 : 1);
+    }
+  }, [selectedWeek]);
 
   // 정보보고, 이슈, 메모 입력 변경 핸들러
   const handleInputChange = (
@@ -153,23 +178,56 @@ const MainPage: React.FC = () => {
     }
   };
 
-  // "2월 1주차" 형식에서 주차 숫자로 변환하는 함수
-  const parseWeekLabelToNumber = (label: string): number | null => {
-    const match = label.match(/\d+/g); // 숫자만 추출 (예: ["2", "1"] for "2월 1주차")
-    return match && match.length === 2
-      ? (parseInt(match[0]) - 1) * 4 + parseInt(match[1])
-      : null;
+  // ✅ 다음 주차를 생성할 수 있는지 확인하는 함수
+  const checkNextWeekAvailable = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0: 일요일 ~ 6: 토요일
+    if (dayOfWeek === 1) {
+      setNextWeekCheck(currentWeek! + 1);
+    } else {
+      setNextWeekCheck(null);
+    }
   };
 
-  // 드롭다운 변경 시 주차 업데이트
-  const handleWeekChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedLabel = event.target.value;
-    const selectedWeek = parseWeekLabelToNumber(selectedLabel);
+  // ✅ 새로운 주차 추가하는 함수
+  const handleNewSheet = () => {
+    const dateNow = new Date();
+    const weekNow = getWeekNumber(dateNow);
+    console.log("🔹 실제 주차:", weekNow);
 
-    if (selectedWeek !== null) {
-      setCurrentWeek(selectedWeek); // 선택한 주차 업데이트
-      setPreviousWeek(selectedWeek + 1); // 선택한 주차 + 1 업데이트
-    }
+    const nextWeek: number = weekNow < 52 ? weekNow + 1 : 1; // 52주차 이후면 1주차로 순환
+
+    console.log("🔹 다음 추가 가능한 주차:", nextWeek);
+
+    // ✅ `nextWeek`가 이미 추가되지 않았을 경우에만 추가
+    setRecentWeeks((prevWeeks) => {
+      const updatedWeeks = prevWeeks.map((week) => Number(week)); // `number[]` 변환
+
+      if (!updatedWeeks.includes(nextWeek)) {
+        console.log("✅ 새로운 주차 추가됨:", nextWeek);
+        return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
+      } else {
+        console.log("⚠️ 이미 추가된 주차입니다.");
+        alert("이미 추가된 주차입니다.");
+        return prevWeeks; // 변경 없음
+      }
+    });
+
+    // ✅ 드롭다운 선택값을 `nextWeek`로 변경
+    setSelectedWeek(nextWeek);
+
+    // ✅ `reportData` 초기화: 테이블을 기본 값으로 유지
+    setReportData([
+      {
+        category: "",
+        weeklyPlan: ``,
+        prevPlan: ``,
+        prevResult: "",
+        completion: "202 . . ",
+        progress: "0%",
+        allprogress: "0%",
+      },
+    ]);
   };
 
   return (
@@ -193,12 +251,14 @@ const MainPage: React.FC = () => {
 
             <select
               className={styles.dropdown}
-              value={currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}
-              onChange={handleWeekChange}
+              value={selectedWeek || ""}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setSelectedWeek(Number(e.target.value))
+              }
             >
-              {sixweeks.map((week, index) => (
+              {recentWeeks.map((week, index) => (
                 <option key={index} value={week}>
-                  {week}
+                  {`${week}주 (${getMonthWeekLabel(Number(week))})`}
                 </option>
               ))}
             </select>
@@ -211,6 +271,10 @@ const MainPage: React.FC = () => {
           </h3>
 
           <div>
+            {/* 행 추가 버튼 */}
+            <button className={styles.addButton} onClick={handleNewSheet}>
+              New
+            </button>
             {/* 행 추가 버튼 */}
             <button className={styles.addButton} onClick={handleAddRow}>
               Add
@@ -229,7 +293,7 @@ const MainPage: React.FC = () => {
                   구분
                 </th>
                 <th colSpan={1} className={styles.weeklyReport}>
-                  {previousWeek !== null ? getMonthWeekLabel(previousWeek) : ""}
+                  {nextWeek !== null ? getMonthWeekLabel(nextWeek) : ""}
                 </th>
                 <th colSpan={2} className={styles.prevWeek}>
                   {currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}
