@@ -59,7 +59,7 @@ const MainPage: React.FC = () => {
   const [data, setData] = useState<Board[]>([]);
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
-  const { isAuth } = useAuth();
+  const { isAuth, userId, userTeam } = useAuth();
   
   // 스크롤 이동 함수 (좌우 스크롤)
   const scroll = (direction: number) => {
@@ -148,8 +148,8 @@ const MainPage: React.FC = () => {
   };
 
   const loadBoard = async () => {
-    const id = Number(localStorage.getItem("userId"));
-	const team = Number(localStorage.getItem("userTeam"));
+    const id = userId;// Number(localStorage.getItem("userId"));
+	const team = userTeam;//Number(localStorage.getItem("userTeam"));
     const resData = await LoadBoard(id, team);
     setData(resData);
     setIsBoardLoaded(true);
@@ -158,7 +158,7 @@ const MainPage: React.FC = () => {
   // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
     //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
-    const team = Number(localStorage.getItem("userTeam"));
+    const team = userTeam;//Number(localStorage.getItem("userTeam"));
     console.log('team 변경되었을때 탄다', team);
     
     const dateNow = new Date();

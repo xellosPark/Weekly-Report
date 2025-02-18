@@ -1,5 +1,8 @@
 import React from "react";
 import styles from "./Header.module.css"; // CSS 모듈을 import
+import { BsRss } from "react-icons/bs";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   timeRemaining: string;
@@ -7,8 +10,25 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
+  const { isAuth, userId, userTeam, userName } = useAuth();
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
+  const onHome = () => {
+    
+    navigate("/");
+  }
+
   return (
     <header className={styles.header}>
+
+      <div className={styles.logoCon}>
+        <div onClick={onHome}>
+          <span className={styles.iconub}>U</span>
+          <span className={styles.iconubi}>bi</span>
+          <span className={styles.icons}>S</span>
+          <span className={styles.iconsam}>am</span>
+          <BsRss className={styles.navbarLogoIcon} />
+        </div>
+      </div>
       {/* styles로 CSS 클래스 적용 */}
       <div className={styles["header-content"]}>
         {/* CSS 모듈에서 클래스를 사용 */}
@@ -31,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
           </svg>
 
           {/* 사용자 이름 */}
-          <span className={styles.headename}>홍길도 님</span>
+          <span className={styles.headename}>{isAuth && `${userName} 님`}</span>
         </label>
         <button className={styles["logout-button"]} onClick={onLogout}>
           로그아웃

@@ -33,7 +33,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [testMessage, setTestMessage] = useState<string | null>(null);
-  const { login } = useAuth();
+  const { login, userUpdateData } = useAuth();
 
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
 
@@ -45,12 +45,10 @@ export default function LoginPage() {
 
       if (response.status === 201) {
         const { accessToken, userData } = response.data;
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("userId", String(userData.id));
-        localStorage.setItem("username", userData.username);
-        localStorage.setItem("userRank", String(userData.rank));
-        localStorage.setItem("userTeam", String(userData.team));
+        // localStorage.setItem("accessToken", accessToken);
+        
         login(accessToken);
+        userUpdateData(userData)
 
         navigate("/DashBoard"); // 로그인 성공 후 페이지 이동
       }
