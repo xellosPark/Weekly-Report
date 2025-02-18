@@ -39,3 +39,28 @@
 .logout-button:hover {
   background-color: #d32f2f;
 }
+
+.huserinfo {
+  display: flex; /* 가로 정렬 */
+  align-items: center; /* 세로 중앙 정렬 */
+  color: rgb(255, 255, 255);
+  padding: 4px 10px;
+  border-radius: 50px;
+  border: none;
+  margin-right: 2px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.iconhalfhuman {
+  width: 20px; /* 아이콘 크기 */
+  height: 20px;
+  margin-right: 8px; /* 아이콘과 텍스트 간격 */
+  fill: rgb(255, 255, 255);
+}
+
+.headename {
+  white-space: nowrap; /* 줄바꿈 방지 */
+  display: inline-block;
+  text-align: center;
+}

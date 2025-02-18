@@ -7,7 +7,6 @@ import Dashboard from "../pages/MainPage/MainPage";
 
 const AppRoutes = () => {
   const { isAuth } = useAuth();
-  const [timeRemaining, setTimeRemaining] = useState("10:00"); // ✅ 남은 시간 예시
 
   // ✅ 로그아웃 핸들러
   const handleLogout = () => {
@@ -23,7 +22,7 @@ const AppRoutes = () => {
         path="/DashBoard"
         element={
           isAuth ? (
-            <MainLayout timeRemaining={timeRemaining} onLogout={handleLogout}>
+            <MainLayout onLogout={handleLogout}>
               <Dashboard />
             </MainLayout>
           ) : (
