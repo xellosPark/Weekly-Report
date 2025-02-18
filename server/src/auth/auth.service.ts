@@ -76,9 +76,10 @@ export class AuthService {
             //expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'),
         })
 
+        const userData = await this.userRepository.findOne({ where: { email: user.email } });
         await this.saveRefreshToken(user.id, refreshToken);
 
-        return { accessToken, refreshToken };
+        return { accessToken, refreshToken, userData };
     }
 
     async generateAccessToken(user: any) {

@@ -48,7 +48,7 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('signin')
     async login(@Request() req: any, @Res() res: Response) { // ✅ Express Response 타입 사용
-        const { accessToken, refreshToken } = await this.authService.generateTokens(req.user);
+        const { accessToken, refreshToken, userData } = await this.authService.generateTokens(req.user);
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true, // ✅ XSS 공격 방어 (클라이언트에서 접근 불가)
@@ -59,7 +59,7 @@ export class AuthController {
             maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
         });
         
-        return res.json({ accessToken });
+        return res.json({ accessToken, refreshToken, userData });
     }
 
     /*
@@ -71,8 +71,18 @@ export class AuthController {
     @UseGuards(AuthGuard())
     async refresh(@Request() req: any, @Res() res: Response) {
         const oldRefreshToken = req.cookies.refreshToken; // ✅ 쿠키에서 Refresh Token 가져오기
-        const { accessToken } = await this.authService.refreshAccessToken(oldRefreshToken);
+        const { accessToken, refreshToken } = await this.authService.generateTokens(oldRefreshToken);
         
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true, // ✅ XSS 공격 방어 (클라이언트에서 접근 불가)
+            //secure: process.env.NODE_ENV === 'production' ? true : false, // ✅ true : HTTPS에서만 쿠키 전송
+            secure: false,
+            sameSite: 'strict', // ✅ CSRF 공격 방어
+            path: '/', // ✅ 쿠키 경로 설정
+            maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
+        });
+
+
         return res.json({ accessToken });
     }
 

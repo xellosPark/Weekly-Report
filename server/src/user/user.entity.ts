@@ -1,6 +1,7 @@
 // src/users/user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, BeforeInsert, Unique, DeleteDateColumn, } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, BeforeInsert, Unique, DeleteDateColumn, OneToMany, } from 'typeorm';
   import { Auth } from '../auth/auth.entity';
+import { Board } from 'src/boards/boards.entity';
   
   @Entity('user')
   @Unique(['email'])
@@ -30,7 +31,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
     @Column({ default: 0 })
     state: number;
   
-    @OneToOne(() => Auth, (auth) => auth.user, { cascade: true, eager: true }) //User 생성 시 Auth도 자동 생성
+    @OneToOne(() => Auth, (auth) => auth.user, { cascade: true, eager: false }) //User 생성 시 Auth도 자동 생성
     auth: Auth;
   
     @CreateDateColumn()
@@ -41,6 +42,10 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
     @DeleteDateColumn({ nullable: true })
     deletedAt: Date | null;
+
+    // 🔗 User(1) ↔ Board(N)
+    @OneToMany(() => Board, (board) => board.user)
+    boards: Board[];
   
     @BeforeInsert()
     setAuth() {

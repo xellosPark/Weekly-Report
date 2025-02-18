@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   // JWT 토큰의 페이로드를 검증하는 메서드
-  async validate(payload: { email: string }) {
+  async validate(payload: any, req?: any) {
 
     //console.log("시작:", payload);
     const { email } = payload;
