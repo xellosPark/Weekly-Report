@@ -9,10 +9,22 @@ import { useAuth } from "../../context/AuthContext";
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  userData: User;
 }
 
 interface ErrorResponse {
   message: string;
+}
+
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  rank: number;
+  team: number;
+  site: number;
+  admin: number;
+  state: number;
 }
 
 export default function LoginPage() {
@@ -34,8 +46,12 @@ export default function LoginPage() {
       );
 
       if (response.status === 201) {
-        const { accessToken } = response.data;
+        const { accessToken, userData } = response.data;
         localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("userId", String(userData.id));
+        localStorage.setItem("username", userData.username);
+        localStorage.setItem("userRank", String(userData.rank));
+        localStorage.setItem("userTeam", String(userData.team));
         login(accessToken);
 
         navigate("/DashBoard"); // 로그인 성공 후 페이지 이동
