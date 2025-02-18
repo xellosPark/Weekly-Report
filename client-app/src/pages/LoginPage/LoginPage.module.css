@@ -1,14 +1,13 @@
-/* ✅ 전체 화면 스타일 */
 .container {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 98.7vh;
   width: 99.3vw;
-  /* background-image: url("../../logos/LG_Electronics_Gradient_01_RGB.jpg");
+  background-image: url("../../logos/LG_Electronics_Gradient_01_RGB.jpg");
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat; */
+  background-repeat: no-repeat;
 }
 
 /* ✅ 로그인 박스 스타일 */
