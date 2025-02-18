@@ -17,7 +17,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({
       className={`${styles.sidebar} ${isMinimized ? styles.minimized : ""}`}
     >
       <div className={styles.menu}>
-        <Link to="/sidebar/DashBoard" className={styles.menuItem}>
+        <Link to="/DashBoard" className={styles.menuItem}>
           주간업무
         </Link>
         {/* <Link to="/sidebar/EvalDashBoardFinal" className={styles.menuItem}>

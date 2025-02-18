@@ -1,40 +1,102 @@
+/* ✅ 전체 화면 스타일 */
 .container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 98.7vh;
+  width: 99.3vw;
+  background-image: url("../../logos/LG_Electronics_Gradient_01_RGB.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ✅ 로그인 박스 스타일 */
+.loginBox {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+  justify-content: center;
+  width: 400px; /* ✅ 카드 크기 */
+  border: 2px solid black;
 }
 
+/* ✅ 로고 스타일 */
+.logo {
+  width: 100px; /* ✅ 로고 크기 */
+  margin-bottom: 20px;
+}
+
+/* ✅ 로그인 제목 */
 .title {
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
+/* ✅ 로그인 폼 */
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ✅ 입력 필드 + 버튼을 세로로 배치하는 컨테이너 */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 20px;
+}
+
+/* ✅ 입력 필드 */
 .inputField {
-  width: 300px;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
+  width: 93%;
+  padding: 12px;
+  border: 2px solid black;
   border-radius: 5px;
+  font-size: 16px;
+  height: 30px;
 }
 
+/* ✅ 로그인 버튼 */
 .button {
-  width: 300px;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #4caf50;
+  width: 100%;
+  height: 50px;
+  background-color: #e91e63;
   color: white;
+  font-size: 16px;
+  font-weight: bold;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button:hover {
-  background-color: #45a049;
+  background-color: #d81b60;
 }
 
-.error {
-  color: red;
-  margin-top: 10px;
+.findLinks {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  gap: 10px;
+}
+
+.findLinks a {
+  color: #e91e63;
+  text-decoration: none;
+}
+
+.findLinks a:hover {
+  text-decoration: underline;
 }
