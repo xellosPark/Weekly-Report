@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import styles from "./MainPage.module.css";
 import axios from "axios";
 import api from "../../utils/api";
@@ -60,6 +60,20 @@ const MainPage: React.FC = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
   const { isAuth, userId, userTeam } = useAuth();
+
+  const [error, fetchDataAction, isPending] = useActionState<Error | null, void>(async () => {
+    //console.log('load board', userId, userTeam);
+    
+    try {
+      const result = await LoadBoard(userId, userTeam);
+    setData(result); // API 데이터를 직접 useState에 저장
+    setIsBoardLoaded(true);
+    } catch (error) {
+      return error as Error; // 명확한 에러 타입 캐스팅
+    }
+    return null; // 에러가 없을 경우 null 반환
+  }, null);
+
   
   // 스크롤 이동 함수 (좌우 스크롤)
   const scroll = (direction: number) => {
@@ -148,18 +162,19 @@ const MainPage: React.FC = () => {
   };
 
   const loadBoard = async () => {
-    const id = userId;// Number(localStorage.getItem("userId"));
-	const team = userTeam;//Number(localStorage.getItem("userTeam"));
-    const resData = await LoadBoard(id, team);
+    //const id = userId;// Number(localStorage.getItem("userId"));
+	//const team = userTeam;//Number(localStorage.getItem("userTeam"));
+    const resData = await LoadBoard(userId, userTeam);
     setData(resData);
     setIsBoardLoaded(true);
+    setSelectOriginalData(resData[resData.length - 1]);
   }
 
   // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
     //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
-    const team = userTeam;//Number(localStorage.getItem("userTeam"));
-    console.log('team 변경되었을때 탄다', team);
+    //const team = userTeam;//Number(localStorage.getItem("userTeam"));
+    //console.log('team 변경되었을때 탄다', team);
     
     const dateNow = new Date();
     const weekNow = getWeekNumber(dateNow);
@@ -190,22 +205,23 @@ const MainPage: React.FC = () => {
     checkNextWeekAvailable();
 
     //🔹 team 값에 따라 필터링
-    if (team === 10) {
+    if (userTeam === 10) {
       //console.log('진행', team);
       setFilteredParts(parts); // 모든 파트 표시
       setSelectedPart(parts[parts.length - 1]);
-    } else if (team === 0) {
+    } else if (userTeam === 0) {
       return;
     } else {
       //console.log('진행', team);
-      const filtered = parts.filter(part => part.value === team);
+      const filtered = parts.filter(part => part.value === userTeam);
       //console.log('filtered', filtered);
       
       setFilteredParts(filtered.length > 0 ? filtered : [{ label: "선택 없음", value: -1 }]);
       setSelectedPart(filtered[0]);
     }
-
-      loadBoard();
+    startTransition(() => {
+      fetchDataAction();
+    });
   }, [isAuth]);
 
   // 🔹 `selectedWeek` 변경 시 `previousWeek`, `nextWeek` 업데이트
@@ -239,6 +255,12 @@ const MainPage: React.FC = () => {
       setIssueContent("없음");
       setMemoContent("없음");
       setIsEdit(true);
+
+      if (data.length > 0 && data[data.length -1].title !==  getMonthWeekLabel(currentWeek || 1)) {
+        OnSave();
+        loadBoard();
+      }
+
       return; // 데이터가 없으면 실행 중지
     }
 
@@ -262,8 +284,6 @@ const MainPage: React.FC = () => {
       allprogress: allprogress[index] || ""
     }));
 
-    //console.log('✅ Transformed Data:', transformedData);
-
     // 변환된 데이터를 setReportData에 저장
     setReportData(transformedData);
 
@@ -273,7 +293,6 @@ const MainPage: React.FC = () => {
 
     setSelectOriginalData(loadData[0]);
     setIsEdit(false);
-    console.log('recentWeeks', recentWeeks);    
     
   }, [currentWeek, isBoardLoaded, selectedPart])
 
@@ -315,26 +334,51 @@ const MainPage: React.FC = () => {
 
   // ✅ 새로운 주차 추가하는 함수
   const handleNewSheet = () => {
-    const dateNow = new Date();
-    const weekNow = getWeekNumber(dateNow);
-    console.log("🔹 실제 주차:", weekNow);
+    const currentWeek = getWeekNumber(new Date()); // ✅ 현재 주차 계산
+    console.log("🔹 현재 주차:", currentWeek);
 
-    const nextWeek: number = weekNow < 52 ? weekNow + 1 : 1; // 52주차 이후면 1주차로 순환
+    if (recentWeeks.length === 0) {
+        setRecentWeeks([currentWeek]); // 첫 주차 저장
+        setSelectedWeek(currentWeek);
+        setReportData([
+            {
+                category: "",
+                weeklyPlan: ``,
+                prevPlan: ``,
+                prevResult: "",
+                completion: "202 . . ",
+                progress: "0%",
+                allprogress: "0%",
+            },
+        ]);
+        console.log("🔹 첫 주차 추가:", currentWeek);
+        return;
+    }
 
-    console.log("🔹 다음 추가 가능한 주차:", nextWeek);
+    const lastWeek = Number(recentWeeks[recentWeeks.length - 1]); // ✅ 드롭다운 마지막 주차
+    console.log("🔹 드롭다운 마지막 주차:", lastWeek);
 
-    // ✅ `nextWeek`가 이미 추가되지 않았을 경우에만 추가
+    //✅ 조건: lastWeek가 현재 주차보다 작아야 추가
+    if (lastWeek >= currentWeek) {
+        console.log("⚠️ 추가 불가: 현재 주차가 마지막 주차보다 크지 않음.");
+        alert("현재 주차보다 큰 주차만 추가할 수 있습니다.");
+        return;
+    }
+
+     const nextWeek = currentWeek; // ✅ 현재 주차를 그대로 사용
+    // ✅ 중복 체크 후 추가
     setRecentWeeks((prevWeeks) => {
-      const updatedWeeks = prevWeeks.map((week) => Number(week)); // `number[]` 변환
-
-      if (!updatedWeeks.includes(nextWeek)) {
-        console.log("✅ 새로운 주차 추가됨:", nextWeek);
-        return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
-      } else {
-        console.log("⚠️ 이미 추가된 주차입니다.");
-        alert("이미 추가된 주차입니다.");
-        return prevWeeks; // 변경 없음
-      }
+        const updatedWeeks = prevWeeks.map((week) => Number(week));
+        if (!updatedWeeks.includes(nextWeek)) {
+          
+          console.log("✅ 새로운 주차 추가됨:", nextWeek);
+            return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
+        } else {
+            console.log("⚠️ 이미 추가된 주차입니다.");
+            alert("이미 추가된 주차입니다.");
+            
+            return prevWeeks; // 변경 없음
+        }
     });
 
     // ✅ 드롭다운 선택값을 `nextWeek`로 변경
@@ -342,17 +386,20 @@ const MainPage: React.FC = () => {
 
     // ✅ `reportData` 초기화: 테이블을 기본 값으로 유지
     setReportData([
-      {
-        category: "",
-        weeklyPlan: ``,
-        prevPlan: ``,
-        prevResult: "",
-        completion: "202 . . ",
-        progress: "0%",
-        allprogress: "0%",
-      },
+        {
+            category: "",
+            weeklyPlan: ``,
+            prevPlan: ``,
+            prevResult: "",
+            completion: "202 . . ",
+            progress: "0%",
+            allprogress: "0%",
+        },
     ]);
-  };
+
+    console.log("✅ 선택된 주차 변경됨:", nextWeek);
+};
+
 
   const OnSave = async () => {
     console.log('reportData', reportData);
@@ -393,7 +440,7 @@ const MainPage: React.FC = () => {
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
     //console.log('select id', selectOriginalData?.id);
-    const resData = EditBoard(board, selectOriginalData?.id);
+    const resData = await EditBoard(board, selectOriginalData?.id);
     console.log('Edit response', resData);
   }
 
@@ -454,14 +501,22 @@ const MainPage: React.FC = () => {
               Add
             </button>
             {/* 저장 버튼 */}
-            {
+            <button className={styles.saveButton} onClick={OnEdit}>Save</button>
+            {/* {
               isEdit ? ( <button className={styles.saveButton} onClick={OnSave}>Save</button>) : (
                 <button className={styles.saveButton} onClick={OnEdit}>Edit</button>)
-            }
+            } */}
           </div>
         </div>
 
+        {isPending && <p>⏳ 데이터를 불러오는 중...</p>}
+
+      {/* 에러 발생 시 표시 */}
+      {error?.message && <p style={{ color: "red" }}>⚠️ {error.message}</p>}
+
+
         {/* 업무보고 테이블 */}
+        {data.length > 0 ? (
         <div className={styles.reportTableContainer}>
           <table className={styles.reportTable}>
             <thead>
@@ -501,23 +556,33 @@ const MainPage: React.FC = () => {
                       field === "completion" ? (
                         <div style={{display: 'flex'}}>
                         <input
+                        style={{
+                          opacity: recentWeeks[recentWeeks.length-1] !== currentWeek ? 1 : 1, // ✅ 스타일 변경
+                          cursor: recentWeeks[recentWeeks.length-1] !== currentWeek ? "not-allowed" : "text",
+                        }}
                           type="text"
                           className={styles.inputField}
                           value={row[field as keyof typeof row]}
                           onChange={(e) =>
                             handleMainChange(index, field, e.target.value)
                           }
+                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek}
                         />
                         { (field === "progress" || field === "allprogress") && <span style={{marginRight: '2px'}}>%</span>}
                         </div>
                       ) : (
                         <textarea
+                          style={{
+                            opacity: recentWeeks[recentWeeks.length-1] !== currentWeek ? 1 : 1, // ✅ 스타일 변경
+                            cursor: recentWeeks[recentWeeks.length-1] !== currentWeek ? "not-allowed" : "text",
+                          }}
                           className={styles.MaintextArea}
                           value={row[field as keyof typeof row]}
                           onChange={(e) =>
                             handleMainChange(index, field, e.target.value)
                           }
                           onInput={handleTextAreaResize} // 높이 자동 조절
+                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek}
                         />
                       )}
                     </td>
@@ -527,9 +592,11 @@ const MainPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        ) : (<p>📌 데이터 없음</p>)}
       </div>
 
       {/* 정보보고, 이슈, 메모 입력 */}
+      {data.length > 0 ? (
       <div className={styles.section2}>
         <table className={styles.infoTable}>
           <tbody>
@@ -562,6 +629,7 @@ const MainPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+       ) : (<p>📌 데이터 없음</p>)}
     </div>
   );
 };

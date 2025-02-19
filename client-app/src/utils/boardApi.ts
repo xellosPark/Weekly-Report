@@ -1,3 +1,4 @@
+import axios from "axios";
 import api from "./api";
 
 const id = Number(localStorage.getItem("userId"));
@@ -26,15 +27,23 @@ export const LoadBoard = async (id_: number, team_: number) => {
 }
 
 export const SaveBoard = async (board: any) => {
+  const accessToken = localStorage.getItem('accessToken');
+  try {
     const response = await api.post(
-        `http://localhost:9801/boards/${id}`,
-        JSON.stringify(board), // JSON 데이터 전송
-        {
-          headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
-        }
+      `http://localhost:9801/boards/${id}`,
+      JSON.stringify(board), // JSON 데이터 전송
+      {
+        headers: { "Content-Type": "application/json",
+         }, // ✅ JSON 명시
+      }
     );
-    if (response?.data) return "저장되었습니다";
-    else return "저장 실패";
+    if (response?.data) return response?.data;// "저장되었습니다";
+  } catch (error) {
+    console.log(error);
+    
+    //console.error("❌ 요청 실패:", error.response?.data || error.message);
+  }
+    return "저장 실패";
 }
 
 export const EditBoard = async (board: any, original: number | undefined) => {

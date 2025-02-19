@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { BoardDto } from './dto/create-board.dto';
 import { Response } from 'express';
@@ -11,7 +11,7 @@ export class BoardsController {
 
     @Get(':id')
     async allLoadBoard(@Param("id", ParseIntPipe) id: number) {
-        console.log('id', id);
+        console.log('allLoadBoard id', id);
         return this.boardsService.allLoadBoard(id);
     }
 
@@ -24,7 +24,7 @@ export class BoardsController {
 
     @Get()
     async loadBoard(@Query("id", ParseIntPipe) id: number, @Query('team') team: number) {
-        console.log('id team', id, team);
+        //console.log('id team', id, team);
         return this.boardsService.loadBoard(id, team);
     }
 
@@ -60,20 +60,23 @@ export class BoardsController {
      */
     @Post(':id')
     @UseGuards(AuthGuard('jwt'))
-    async createBoard(@Param("id", ParseIntPipe) id: number, @Body() createBoardDto: BoardDto) {
-        console.log('id', id);
+    async createBoard(@Param("id", ParseIntPipe) id: number, @Body() createBoardDto: BoardDto, @Req() req: any) {
+        const userId = req.user.id;
+        console.log('userId', id);
         
-        //console.log('board', createBoardDto);
+        console.log('createBoard id', userId);
         
-        return this.boardsService.createBoard(createBoardDto, id);
+        console.log('board', createBoardDto);
+        
+        return this.boardsService.createBoard(createBoardDto, userId);
     }
 
-    @Post()
-    async test(@Res() res: Response) {
+    // @Post()
+    // async test(@Res() res: Response) {
         
         
-        return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
-    }
+    //     return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+    // }
 
     @Patch('edit/:id')
     @UseGuards(AuthGuard('jwt')) // JWT 인증 가드 적용

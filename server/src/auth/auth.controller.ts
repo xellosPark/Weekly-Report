@@ -82,7 +82,8 @@ export class AuthController {
             maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
         });
 
-
+        console.log('token 재발급');
+        
         return res.json({ accessToken });
     }
 

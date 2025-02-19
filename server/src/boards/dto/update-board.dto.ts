@@ -2,26 +2,33 @@ import { Transform } from 'class-transformer';
 import { IsString, IsNotEmpty, IsBoolean, IsOptional, IsInt } from 'class-validator';
 
 export class UpdateBoardDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: '구분은 필수 항목 입니다.'})
+  //@IsNotEmpty({ message: '구분은 필수 항목 입니다.'})
   category: string;
 
+  @IsOptional()
   @IsString()
   previousWeekPlan: string;
 
+  @IsOptional()
   @IsString()
   currentWeekPlan: string;
 
+  @IsOptional()
   @IsString()
   performance: string;
 
+  @IsOptional()
   @IsString()
   completionDate: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty({ message: '금주 달성율은 필수 항목 입니다.'})
   achievementRate: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty({ message: '전체 달성율은 필수 항목 입니다.'})
   totalRate: string;

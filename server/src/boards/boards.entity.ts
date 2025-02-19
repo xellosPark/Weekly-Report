@@ -17,7 +17,7 @@ export class Board extends BaseEntity {
   @Column({ type: 'text' })
   title: string; // 게시판 제목을 저장하는 필드 (2025년 2월 1주차)
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text',default: "" })
   category: string; // 구분(카테고리) 정보를 저장하는 필드
 
   @Column({ type: 'text', nullable: true })

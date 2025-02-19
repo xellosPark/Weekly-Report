@@ -9,12 +9,12 @@ const api = axios.create({
 // Request Interceptor: 요청 시 Access Token을 헤더에 추가
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        console.log('[요청 인터셉터] 요청 시작:', config.url);
+        //console.log('[요청 인터셉터] 요청 시작:', config.url);
 
         const token = localStorage.getItem('accessToken');  // 로컬스토리지에서 accessToken 가져오기
 
         if (token) {
-            console.log('[요청 인터셉터] Access Token 추가:', token);
+            //console.log('[요청 인터셉터] Access Token 추가:', token);
 
             // AxiosHeaders로 헤더를 설정 (타입 호환을 위해 AxiosHeaders 사용)
             const headers = config.headers || {};  // headers가 undefined일 경우 빈 객체로 초기화
@@ -37,7 +37,7 @@ api.interceptors.request.use(
 // Response Interceptor: 응답 처리 및 토큰 갱신
 api.interceptors.response.use(
     (response: AxiosResponse) => {
-        console.log('[응답 인터셉터] 응답 성공:', response);
+        //console.log('[응답 인터셉터] 응답 성공:', response);
         return response;
     },
     async (error: AxiosError) => {
@@ -63,7 +63,7 @@ api.interceptors.response.use(
                     throw new Error('Refresh Token이 없습니다.');
                 }
 
-                console.log('[응답 인터셉터] Refresh Token으로 토큰 갱신 요청 시작');
+                //console.log('[응답 인터셉터] Refresh Token으로 토큰 갱신 요청 시작');
                 // Refresh Token을 사용해 새로운 Access Token을 요청
                 const { data } = await axios.post('http://localhost:9801/auth/refresh', {}, {
                     headers: { Authorization: `Bearer ${refreshToken}` },

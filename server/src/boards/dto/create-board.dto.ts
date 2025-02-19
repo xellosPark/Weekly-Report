@@ -11,26 +11,32 @@ export class BoardDto {
   @IsNotEmpty({ message: '제목 포맷은 "2025년도 1월 1주차" 입니다.'})
   title: string; // 게시판 제목
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: '구분은 필수 항목 입니다.'})
   category: string;
 
+  @IsOptional()
   @IsString()
   previousWeekPlan: string;
 
+  @IsOptional()
   @IsString()
   currentWeekPlan: string;
 
+  @IsOptional()
   @IsString()
   performance: string;
 
+  @IsOptional()
   @IsString()
   completionDate: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty({ message: '금주 달성율은 필수 항목 입니다.'})
   achievementRate: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty({ message: '전체 달성율은 필수 항목 입니다.'})
   totalRate: string;

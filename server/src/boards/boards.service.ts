@@ -41,7 +41,7 @@ export class BoardsService {
     });
     await this.boardRepository.save(createBoard);
 
-    console.log('Board Create 완료');
+    //console.log('Board Create 완료');
     //this.boards.push(board); // 생성한 board 객체 추가
     return createBoard;
   }
