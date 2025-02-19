@@ -256,7 +256,7 @@ const MainPage: React.FC = () => {
       setMemoContent("없음");
       setIsEdit(true);
 
-      if (data.length > 0 && data[data.length -1].title !==  getMonthWeekLabel(currentWeek || 1)) {
+      if (data.length > 0 && data[data.length -1].title !== getMonthWeekLabel(currentWeek || 1) && (userTeam === selectedPart.value)) {
         OnSave();
         loadBoard();
       }
@@ -425,6 +425,12 @@ const MainPage: React.FC = () => {
   }
 
   const OnEdit = async () => {
+
+    if (selectOriginalData?.part !== userTeam) {
+      console.log('파트가 틀립니다', selectOriginalData);
+      return;
+    }
+
     const board = {
       category: reportData.map(obj => obj.category).join(", "),
       currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join(", "),
@@ -493,12 +499,12 @@ const MainPage: React.FC = () => {
 
           <div>
             {/* 행 추가 버튼 */}
-            <button className={styles.addButton} onClick={handleNewSheet}>
+            {/* <button className={styles.addButton} onClick={handleNewSheet}>
               New
-            </button>
+            </button> */}
             {/* 행 추가 버튼 */}
             <button className={styles.addButton} onClick={handleAddRow}>
-              Add
+              Row Add
             </button>
             {/* 저장 버튼 */}
             <button className={styles.saveButton} onClick={OnEdit}>Save</button>
@@ -516,7 +522,7 @@ const MainPage: React.FC = () => {
 
 
         {/* 업무보고 테이블 */}
-        {data.length > 0 ? (
+        {/* {data.length > 0 ? ( */}
         <div className={styles.reportTableContainer}>
           <table className={styles.reportTable}>
             <thead>
@@ -557,8 +563,8 @@ const MainPage: React.FC = () => {
                         <div style={{display: 'flex'}}>
                         <input
                         style={{
-                          opacity: recentWeeks[recentWeeks.length-1] !== currentWeek ? 1 : 1, // ✅ 스타일 변경
-                          cursor: recentWeeks[recentWeeks.length-1] !== currentWeek ? "not-allowed" : "text",
+                          color: 'black',
+                          cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
                         }}
                           type="text"
                           className={styles.inputField}
@@ -566,15 +572,15 @@ const MainPage: React.FC = () => {
                           onChange={(e) =>
                             handleMainChange(index, field, e.target.value)
                           }
-                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek}
+                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
                         />
                         { (field === "progress" || field === "allprogress") && <span style={{marginRight: '2px'}}>%</span>}
                         </div>
                       ) : (
                         <textarea
                           style={{
-                            opacity: recentWeeks[recentWeeks.length-1] !== currentWeek ? 1 : 1, // ✅ 스타일 변경
-                            cursor: recentWeeks[recentWeeks.length-1] !== currentWeek ? "not-allowed" : "text",
+                            color: 'black',
+                            cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
                           }}
                           className={styles.MaintextArea}
                           value={row[field as keyof typeof row]}
@@ -582,7 +588,7 @@ const MainPage: React.FC = () => {
                             handleMainChange(index, field, e.target.value)
                           }
                           onInput={handleTextAreaResize} // 높이 자동 조절
-                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek}
+                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
                         />
                       )}
                     </td>
@@ -592,11 +598,11 @@ const MainPage: React.FC = () => {
             </tbody>
           </table>
         </div>
-        ) : (<p>📌 데이터 없음</p>)}
+         {/* ) : (<p>📌 데이터 없음</p>)} */}
       </div>
 
       {/* 정보보고, 이슈, 메모 입력 */}
-      {data.length > 0 ? (
+      {/* {data.length > 0 ? ( */}
       <div className={styles.section2}>
         <table className={styles.infoTable}>
           <tbody>
@@ -607,6 +613,11 @@ const MainPage: React.FC = () => {
                   className={styles.textArea}
                   value={infoContent}
                   onChange={(e) => handleInputChange(e, "info")}
+                  style={{
+                    color: 'black',
+                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                  }}
+                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
                 />
               </td>
               <th className={styles.issueHeader}>이슈</th>
@@ -615,6 +626,11 @@ const MainPage: React.FC = () => {
                   className={styles.textArea}
                   value={issueContent}
                   onChange={(e) => handleInputChange(e, "issue")}
+                  style={{
+                    color: 'black',
+                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                  }}
+                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
                 />
               </td>
               <th className={styles.memoHeader}>메모</th>
@@ -623,13 +639,18 @@ const MainPage: React.FC = () => {
                   className={styles.textArea}
                   value={memoContent}
                   onChange={(e) => handleInputChange(e, "memo")}
+                  style={{
+                    color: 'black',
+                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                  }}
+                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
                 />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-       ) : (<p>📌 데이터 없음</p>)}
+        {/* ) : (<p>📌 데이터 없음</p>)} */}
     </div>
   );
 };
