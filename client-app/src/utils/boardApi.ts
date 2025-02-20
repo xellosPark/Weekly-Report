@@ -10,14 +10,14 @@ export const LoadBoard = async (id_: number, team_: number) => {
     let response = null;
     if (team === 10) {
         response = await api.get(
-          `http://localhost:9801/boards/${id_}`,
+          `http://localhost:9801/api/boards/${id_}`,
           {
             headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
           }
         );
       } else {
         response = await api.get(
-          `http://localhost:9801/boards?id=${id_}&team=${team_}`,
+          `http://localhost:9801/api/boards?id=${id_}&team=${team_}`,
           {
             headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
           }
@@ -30,7 +30,7 @@ export const SaveBoard = async (board: any) => {
   const accessToken = localStorage.getItem('accessToken');
   try {
     const response = await api.post(
-      `http://localhost:9801/boards/${id}`,
+      `http://localhost:9801/api/boards/${id}`,
       JSON.stringify(board), // JSON 데이터 전송
       {
         headers: { "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export const SaveBoard = async (board: any) => {
 
 export const EditBoard = async (board: any, original: number | undefined) => {
     const response = await api.patch(
-        `http://localhost:9801/boards/edit/${original}`,
+        `http://localhost:9801/api/boards/edit/${original}`,
         board, // JSON 데이터 전송
     );
     if (response?.data) return "업데이트 성공";

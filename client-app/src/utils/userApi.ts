@@ -24,7 +24,7 @@ interface User {
 /* GET */
 export const Login = async (id: string, password: string) => {
     const response = await axios.post<LoginResponse>(
-        "http://localhost:9801/auth/signin",
+        "http://localhost:9801/api/auth/signin",
         { email: id, password: password }
       );
     return response;

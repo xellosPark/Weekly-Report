@@ -65,7 +65,7 @@ api.interceptors.response.use(
 
                 //console.log('[응답 인터셉터] Refresh Token으로 토큰 갱신 요청 시작');
                 // Refresh Token을 사용해 새로운 Access Token을 요청
-                const { data } = await axios.post('http://localhost:9801/auth/refresh', {}, {
+                const { data } = await axios.post('http://localhost:9801/api/auth/refresh', {}, {
                     headers: { Authorization: `Bearer ${refreshToken}` },
                 });
 
