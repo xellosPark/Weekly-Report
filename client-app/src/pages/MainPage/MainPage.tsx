@@ -257,6 +257,8 @@ const MainPage: React.FC = () => {
       setIsEdit(true);
 
       if (data.length > 0 && data[data.length -1].title !== getMonthWeekLabel(currentWeek || 1) && (userTeam === selectedPart.value)) {
+        console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
+        
         OnSave();
         loadBoard();
       }
@@ -265,13 +267,13 @@ const MainPage: React.FC = () => {
     }
 
     // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환
-    const categories = loadData[0].category.split(',').map(item => item.trim());
-    const weeklyPlan = loadData[0].currentWeekPlan.split(',').map(item => item.trim());
-    const prevPlan = loadData[0].previousWeekPlan.split(',').map(item => item.trim());
-    const prevResult = loadData[0].performance.split(',').map(item => item.trim());
-    const completion = loadData[0].completionDate.split(',').map(item => item.trim());
-    const progress = loadData[0].achievementRate.split(',').map(item => item.trim());
-    const allprogress = loadData[0].totalRate.split(',').map(item => item.trim());
+    const categories = loadData[0].category.split('^^').map(item => item.trim());
+    const weeklyPlan = loadData[0].currentWeekPlan.split('^^').map(item => item.trim());
+    const prevPlan = loadData[0].previousWeekPlan.split('^^').map(item => item.trim());
+    const prevResult = loadData[0].performance.split('^^').map(item => item.trim());
+    const completion = loadData[0].completionDate.split('^^').map(item => item.trim());
+    const progress = loadData[0].achievementRate.split('^^').map(item => item.trim());
+    const allprogress = loadData[0].totalRate.split('^^').map(item => item.trim());
 
     // ✅ 배열을 순회하면서 개별 객체 생성
     const transformedData = categories.map((_, index) => ({
@@ -406,13 +408,13 @@ const MainPage: React.FC = () => {
 
     const board = {
       title: currentWeek !== null ? getMonthWeekLabel(currentWeek) : "",
-      category: reportData.map(obj => obj.category).join(", "),
-      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join(", "),
-      previousWeekPlan: reportData.map(obj => obj.prevPlan).join(", "),
-      performance: reportData.map(obj => obj.prevResult).join(", "),
-      completionDate: reportData.map(obj => obj.completion).join(", "),
-      achievementRate: reportData.map(obj => obj.progress).join(", "),
-      totalRate: reportData.map(obj => obj.allprogress).join(", "),
+      category: reportData.map(obj => obj.category).join("^^"),
+      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join("^^"),
+      previousWeekPlan: reportData.map(obj => obj.prevPlan).join("^^"),
+      performance: reportData.map(obj => obj.prevResult).join("^^"),
+      completionDate: reportData.map(obj => obj.completion).join("^^"),
+      achievementRate: reportData.map(obj => obj.progress).join("^^"),
+      totalRate: reportData.map(obj => obj.allprogress).join("^^"),
       report: infoContent,
       issue: issueContent,
       memo: memoContent
@@ -426,19 +428,19 @@ const MainPage: React.FC = () => {
 
   const OnEdit = async () => {
 
-    if (selectOriginalData?.part !== userTeam) {
-      console.log('파트가 틀립니다', selectOriginalData);
-      return;
-    }
+    // if (selectOriginalData?.part !== userTeam) {
+    //   console.log('파트가 틀립니다', selectOriginalData);
+    //   return;
+    // }
 
     const board = {
-      category: reportData.map(obj => obj.category).join(", "),
-      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join(", "),
-      previousWeekPlan: reportData.map(obj => obj.prevPlan).join(", "),
-      performance: reportData.map(obj => obj.prevResult).join(", "),
-      completionDate: reportData.map(obj => obj.completion).join(", "),
-      achievementRate: reportData.map(obj => obj.progress).join(", "),
-      totalRate: reportData.map(obj => obj.allprogress).join(", "),
+      category: reportData.map(obj => obj.category).join("^^"),
+      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join("^^"),
+      previousWeekPlan: reportData.map(obj => obj.prevPlan).join("^^"),
+      performance: reportData.map(obj => obj.prevResult).join("^^"),
+      completionDate: reportData.map(obj => obj.completion).join("^^"),
+      achievementRate: reportData.map(obj => obj.progress).join("^^"),
+      totalRate: reportData.map(obj => obj.allprogress).join("^^"),
       report: infoContent,
       issue: issueContent,
       memo: memoContent
@@ -446,8 +448,9 @@ const MainPage: React.FC = () => {
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
     //console.log('select id', selectOriginalData?.id);
-    const resData = await EditBoard(board, selectOriginalData?.id);
-    console.log('Edit response', resData);
+    const response = await EditBoard(board, selectOriginalData?.id);
+    alert(response);
+    //console.log('Edit response', response);
   }
 
   return (
@@ -503,11 +506,17 @@ const MainPage: React.FC = () => {
               New
             </button> */}
             {/* 행 추가 버튼 */}
-            <button className={styles.addButton} onClick={handleAddRow}>
-              Row Add
-            </button>
+            {
+              selectedPart.value === userTeam && <button className={styles.addButton} onClick={handleAddRow}>
+                Row Add
+                </button>
+            }
+              
             {/* 저장 버튼 */}
-            <button className={styles.saveButton} onClick={OnEdit}>Save</button>
+            {
+              selectedPart.value === userTeam && <button className={styles.saveButton} onClick={OnEdit}>Save</button>
+            }
+              
             {/* {
               isEdit ? ( <button className={styles.saveButton} onClick={OnSave}>Save</button>) : (
                 <button className={styles.saveButton} onClick={OnEdit}>Edit</button>)
