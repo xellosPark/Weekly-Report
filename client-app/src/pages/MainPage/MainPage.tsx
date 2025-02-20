@@ -25,6 +25,11 @@ const MainPage: React.FC = () => {
     memo: string;
   }
 
+  interface ContextMenuState {
+    mouseX: number;
+    mouseY: number;
+  }
+
   const [weeks, setWeeks] = useState<number[]>(
     Array.from({ length: 52 }, (_, i) => i + 1)
   ); // 1~52주 배열
@@ -60,6 +65,8 @@ const MainPage: React.FC = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
   const { isAuth, userId, userTeam } = useAuth();
+  // 우클릭 메뉴 상태
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const [error, fetchDataAction, isPending] = useActionState<Error | null, void>(async () => {
     //console.log('load board', userId, userTeam);
@@ -73,6 +80,69 @@ const MainPage: React.FC = () => {
     }
     return null; // 에러가 없을 경우 null 반환
   }, null);
+
+  // 우클릭 이벤트 핸들러
+  const handleContextMenu = (event: React.MouseEvent<HTMLTableElement>) => {
+    event.preventDefault(); // 기본 우클릭 메뉴 방지
+    const target = event.target as HTMLElement;
+
+    // 우클릭한 요소가 <thead> 내부라면 컨텍스트 메뉴 표시 안 함
+    if (target.closest("thead")) {
+      setContextMenu(null);
+      return;
+    }
+
+    // 우클릭 위치 저장 후 삭제 버튼 표시
+    setContextMenu({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4,
+    });
+  };
+
+  // 마지막 행 삭제 함수
+  const handleDeleteLastRow = () => {
+    if (reportData.length === 1) return; // 최소 1개는 유지
+
+    // 기본 행 데이터 (초기값)
+  const defaultRow = {
+    category: "",
+    weeklyPlan: "",
+    prevPlan: "",
+    prevResult: "",
+    completion: "202 . . ",
+    progress: "0",
+    allprogress: "0",
+  };
+
+    const lastRow = reportData[reportData.length - 1];
+
+    // 마지막 행이 초기값과 다른지 확인
+    const hasChanges = JSON.stringify(lastRow) !== JSON.stringify(defaultRow);
+
+    if (hasChanges) {
+      const confirmDelete = window.confirm("작성된 내용이 있습니다. 지우시겠습니까?");
+      if (!confirmDelete) {
+        setContextMenu(null); // 메뉴 닫기
+        return;
+      }
+    }
+
+    setReportData(reportData.slice(0, -1)); // 마지막 행 삭제
+    setContextMenu(null); // 메뉴 닫기
+  };
+
+  // 🔹 마우스 클릭 시 메뉴 닫기 (우클릭 메뉴 외 다른 곳 클릭 시 숨김)
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  // 🔹 마우스 클릭 이벤트 등록 (마운트 시 추가, 언마운트 시 정리)
+  useEffect(() => {
+    document.addEventListener("click", handleCloseContextMenu);
+    return () => {
+      document.removeEventListener("click", handleCloseContextMenu);
+    };
+  }, []);
 
   
   // 스크롤 이동 함수 (좌우 스크롤)
@@ -256,7 +326,7 @@ const MainPage: React.FC = () => {
       setMemoContent("없음");
       setIsEdit(true);
 
-      if (data.length > 0 && data[data.length -1].title !== getMonthWeekLabel(currentWeek || 1) && (userTeam === selectedPart.value)) {
+      if ((data.length === 0) || (data[data.length -1]?.title !== getMonthWeekLabel(currentWeek || 1) && (userTeam === selectedPart.value))) {
         console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
         
         OnSave();
@@ -533,7 +603,10 @@ const MainPage: React.FC = () => {
         {/* 업무보고 테이블 */}
         {/* {data.length > 0 ? ( */}
         <div className={styles.reportTableContainer}>
-          <table className={styles.reportTable}>
+          <table className={styles.reportTable}
+            onContextMenu={handleContextMenu} // 테이블에서 우클릭 감지
+            style={{ border: "1px solid black", width: "100%" }}
+          >
             <thead>
               <tr>
                 <th rowSpan={2} className={styles.header}>
@@ -561,7 +634,7 @@ const MainPage: React.FC = () => {
                 <th className={styles.Progress}>전체</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody >
               {reportData.map((row, index) => (
                 <tr key={index}>
                   {Object.keys(row).map((field) => (
@@ -606,6 +679,25 @@ const MainPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          {/* 우클릭 메뉴 */}
+      {contextMenu && (
+        <div
+          style={{
+            position: "absolute",
+            top: contextMenu.mouseY,
+            left: contextMenu.mouseX,
+            background: "white",
+            border: "1px solid gray",
+            borderRadius: "0.4rem",
+            padding: "0.5rem",
+            boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
+            cursor: "pointer",
+          }}
+          onClick={handleDeleteLastRow} // 삭제 버튼 클릭 시 마지막 행 삭제
+        >
+          마지막 행 삭제
+        </div>
+      )}
         </div>
          {/* ) : (<p>📌 데이터 없음</p>)} */}
       </div>

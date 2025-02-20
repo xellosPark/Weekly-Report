@@ -28,7 +28,19 @@ async function bootstrap() {
   );
 
   // 클라이언트 정적 파일 제공
-  // app.use('/', express.static(join(__dirname, '..', 'public')));
+  //app.use('/', express.static(join(__dirname, '..', 'public')));
+
+  // 2. API 요청을 먼저 처리 (예: '/api' 경로를 사용하는 경우)
+  app.setGlobalPrefix('api'); // 모든 API 요청을 '/api'로 시작하도록 설정
+
+  // 3. 클라이언트 라우팅 처리 (React)
+  // app.use((req, res, next) => {
+  //   if (req.originalUrl.startsWith('/api')) {
+  //     return next(); // API 요청은 무시하고 다음 미들웨어 실행
+  //   }
+  //   res.sendFile(join(__dirname, '..', 'public', 'index.html'));
+  // });
+
 
   // ✅ 포트 설정 및 서버 실행
   const PORT = process.env.PORT || 9801;
