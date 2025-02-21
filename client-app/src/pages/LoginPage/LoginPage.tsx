@@ -44,15 +44,19 @@ export default function LoginPage() {
       const response = await Login(id, password);
 
       if (response.status === 201) {
-        alert("로그인 성공!");
         console.log("서버 응답:", response.data);
 
-        const { accessToken, refreshToken } = response.data;
+        const { accessToken, refreshToken, userData } = response.data;
         console.log("Access Token:", accessToken);
         console.log("Refresh Token:", refreshToken);
 
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
+
+        login(accessToken);
+        userUpdateData(userData);
+
+        navigate("/DashBoard"); // 로그인 성공 후 페이지
 
         // window.location.href = "/dashboard";
       } else {
