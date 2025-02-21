@@ -29,7 +29,7 @@ interface User {
 }
 
 export default function LoginPage() {
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<string>("@ubisam.com");
   const [password, setPassword] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [testMessage, setTestMessage] = useState<string | null>(null);
@@ -40,27 +40,40 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       console.log("로그인 요청 데이터:", { email: id, password });
-      
+
       const response = await Login(id, password);
 
       if (response.status === 201) {
-        const { accessToken, userData } = response.data;
-        // localStorage.setItem("accessToken", accessToken);
-        
-        login(accessToken);
-        userUpdateData(userData)
+        alert("로그인 성공!");
+        console.log("서버 응답:", response.data);
 
-        navigate("/DashBoard"); // 로그인 성공 후 페이지 이동
+        const { accessToken, refreshToken } = response.data;
+        console.log("Access Token:", accessToken);
+        console.log("Refresh Token:", refreshToken);
+
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+
+        // window.location.href = "/dashboard";
+      } else {
+        // 서버가 401 응답을 줬다면, 그 메시지를 사용자에게 보여줌
+        console.warn("로그인 실패:", response.data);
+        setErrorMessage(
+          response.data.message || "로그인 실패: 다시 시도해주세요."
+        );
+
+        // 실패한 경우 사용자에게 알림창 표시 (선택적)
+        alert(
+          response.data?.message || "로그인에 실패했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        setErrorMessage(
-          (error.response.data as ErrorResponse).message ||
-            "로그인에 실패했습니다."
-        );
-      } else {
-        setErrorMessage("서버와의 연결에 문제가 발생했습니다.");
-      }
+      console.error("알 수 없는 오류:", error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다."
+      );
     }
   };
 

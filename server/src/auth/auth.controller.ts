@@ -58,7 +58,7 @@ export class AuthController {
             path: '/', // ✅ 쿠키 경로 설정
             maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
         });
-        
+
         return res.json({ accessToken, refreshToken, userData });
     }
 
@@ -72,7 +72,7 @@ export class AuthController {
     async refresh(@Request() req: any, @Res() res: Response) {
         const oldRefreshToken = req.cookies.refreshToken; // ✅ 쿠키에서 Refresh Token 가져오기
         const { accessToken, refreshToken } = await this.authService.generateTokens(oldRefreshToken);
-        
+
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true, // ✅ XSS 공격 방어 (클라이언트에서 접근 불가)
             //secure: process.env.NODE_ENV === 'production' ? true : false, // ✅ true : HTTPS에서만 쿠키 전송
@@ -83,7 +83,7 @@ export class AuthController {
         });
 
         console.log('token 재발급');
-        
+
         return res.json({ accessToken });
     }
 
@@ -96,9 +96,10 @@ export class AuthController {
     @Post('logout')
     @UseGuards(JwtAuthGuard) // ✅ 로그인된 사용자만 로그아웃 가능
     async logout(@Request() req: any, @Res() res: Response) {
-        
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await this.authService.logout(req.user.id);  // DB에서 Refresh Token 삭제
-        
+
         // ✅ 클라이언트 쿠키 삭제
         res.clearCookie('refreshToken', {
             httpOnly: true,
@@ -107,7 +108,7 @@ export class AuthController {
             sameSite: 'strict',
             expires: new Date(0), // 즉시 만료
         });
-        
+
         return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
     }
 

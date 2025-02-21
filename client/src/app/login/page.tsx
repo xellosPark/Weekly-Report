@@ -36,16 +36,34 @@ export default function LoginPage() {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
 
+        // 페이지 이동
         // window.location.href = "/dashboard";
       }
     } catch (error) {
-      // 오류 처리
-      if (axios.isAxiosError(error) && error.response) {
-        setErrorMessage(
-          error.response.data.message || "로그인에 실패했습니다."
-        );
+      console.error("로그인 오류 발생:", error);
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // 서버에서 반환한 응답이 있는 경우
+          console.error("서버 응답 데이터:", error.response.data);
+          console.error("서버 응답 상태 코드:", error.response.status);
+
+          setErrorMessage(
+            error.response.data.message ||
+              `로그인 실패 (상태 코드: ${error.response.status})`
+          );
+        } else if (error.request) {
+          // 요청이 보내졌지만 응답을 받지 못한 경우 (네트워크 문제 등)
+          console.error("요청이 보내졌지만 응답 없음:", error.request);
+          setErrorMessage("서버에서 응답이 없습니다. 네트워크를 확인하세요.");
+        } else {
+          // 요청 설정 중 오류 발생
+          console.error("요청 설정 오류:", error.message);
+          setErrorMessage(`요청 오류: ${error.message}`);
+        }
       } else {
-        setErrorMessage("서버와의 연결에 문제가 발생했습니다.");
+        console.error("알 수 없는 오류:", error);
+        setErrorMessage("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
