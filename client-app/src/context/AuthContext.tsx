@@ -48,8 +48,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const login = (token: string) => {
+    console.log("🔑 로그인 시도 - 받은 토큰:", token);
+
     localStorage.setItem("accessToken", token);
+
+    console.log("📌 저장된 로컬 스토리지 값:");
+    console.log(" - accessToken:", localStorage.getItem("accessToken"));
+
     setIsAuth(true);
+
+    console.log("✅ 로그인 상태 업데이트: setIsAuth(true)");
   };
 
   const userUpdateData = (userData: User) => {
@@ -73,7 +81,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ isAuth, login, logout, userUpdateData, userId, userRank, userTeam, userName }}>
+    <AuthContext.Provider
+      value={{
+        isAuth,
+        login,
+        logout,
+        userUpdateData,
+        userId,
+        userRank,
+        userTeam,
+        userName,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,10 @@
-import React, { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import React, {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styles from "./MainPage.module.css";
 import axios from "axios";
 import api from "../../utils/api";
@@ -48,17 +54,22 @@ const MainPage: React.FC = () => {
   const parts: { label: string; value: number }[] = [
     { label: "자동화파트", value: 1 },
     { label: "로봇파트", value: 2 },
-    { label: "팀장", value: 10 }
+    { label: "팀장", value: 10 },
   ];
-  
-  const [selectedPart, setSelectedPart] = useState<{ label: string; value: number }>(parts[0]);
+
+  const [selectedPart, setSelectedPart] = useState<{
+    label: string;
+    value: number;
+  }>(parts[0]);
   // ✅ useState의 초기 타입을 명시적으로 지정
-  const [filteredParts, setFilteredParts] = useState<{ label: string; value: number }[]>([]);
+  const [filteredParts, setFilteredParts] = useState<
+    { label: string; value: number }[]
+  >([]);
 
   // 정보보고, 이슈, 메모 입력값 상태
-  const [infoContent, setInfoContent] = useState("없음");
-  const [issueContent, setIssueContent] = useState("없음");
-  const [memoContent, setMemoContent] = useState("없음");
+  const [infoContent, setInfoContent] = useState("");
+  const [issueContent, setIssueContent] = useState("");
+  const [memoContent, setMemoContent] = useState("");
 
   const [isBoardLoaded, setIsBoardLoaded] = useState(false); // loadBoard 완료 여부
   const [data, setData] = useState<Board[]>([]);
@@ -68,13 +79,16 @@ const MainPage: React.FC = () => {
   // 우클릭 메뉴 상태
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-  const [error, fetchDataAction, isPending] = useActionState<Error | null, void>(async () => {
+  const [error, fetchDataAction, isPending] = useActionState<
+    Error | null,
+    void
+  >(async () => {
     //console.log('load board', userId, userTeam);
-    
+
     try {
       const result = await LoadBoard(userId, userTeam);
-    setData(result); // API 데이터를 직접 useState에 저장
-    setIsBoardLoaded(true);
+      setData(result); // API 데이터를 직접 useState에 저장
+      setIsBoardLoaded(true);
     } catch (error) {
       return error as Error; // 명확한 에러 타입 캐스팅
     }
@@ -104,15 +118,15 @@ const MainPage: React.FC = () => {
     if (reportData.length === 1) return; // 최소 1개는 유지
 
     // 기본 행 데이터 (초기값)
-  const defaultRow = {
-    category: "",
-    weeklyPlan: "",
-    prevPlan: "",
-    prevResult: "",
-    completion: "202 . . ",
-    progress: "0",
-    allprogress: "0",
-  };
+    const defaultRow = {
+      category: "",
+      weeklyPlan: "",
+      prevPlan: "",
+      prevResult: "",
+      completion: "202 . . ",
+      progress: "0",
+      allprogress: "0",
+    };
 
     const lastRow = reportData[reportData.length - 1];
 
@@ -120,7 +134,9 @@ const MainPage: React.FC = () => {
     const hasChanges = JSON.stringify(lastRow) !== JSON.stringify(defaultRow);
 
     if (hasChanges) {
-      const confirmDelete = window.confirm("작성된 내용이 있습니다. 지우시겠습니까?");
+      const confirmDelete = window.confirm(
+        "작성된 내용이 있습니다. 지우시겠습니까?"
+      );
       if (!confirmDelete) {
         setContextMenu(null); // 메뉴 닫기
         return;
@@ -144,7 +160,6 @@ const MainPage: React.FC = () => {
     };
   }, []);
 
-  
   // 스크롤 이동 함수 (좌우 스크롤)
   const scroll = (direction: number) => {
     if (scrollRef.current) {
@@ -233,19 +248,19 @@ const MainPage: React.FC = () => {
 
   const loadBoard = async () => {
     //const id = userId;// Number(localStorage.getItem("userId"));
-	//const team = userTeam;//Number(localStorage.getItem("userTeam"));
+    //const team = userTeam;//Number(localStorage.getItem("userTeam"));
     const resData = await LoadBoard(userId, userTeam);
     setData(resData);
     setIsBoardLoaded(true);
     setSelectOriginalData(resData[resData.length - 1]);
-  }
+  };
 
   // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
     //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
     //const team = userTeam;//Number(localStorage.getItem("userTeam"));
     //console.log('team 변경되었을때 탄다', team);
-    
+
     const dateNow = new Date();
     const weekNow = getWeekNumber(dateNow);
     const yearNow = dateNow.getFullYear();
@@ -283,10 +298,12 @@ const MainPage: React.FC = () => {
       return;
     } else {
       //console.log('진행', team);
-      const filtered = parts.filter(part => part.value === userTeam);
+      const filtered = parts.filter((part) => part.value === userTeam);
       //console.log('filtered', filtered);
-      
-      setFilteredParts(filtered.length > 0 ? filtered : [{ label: "선택 없음", value: -1 }]);
+
+      setFilteredParts(
+        filtered.length > 0 ? filtered : [{ label: "선택 없음", value: -1 }]
+      );
       setSelectedPart(filtered[0]);
     }
     startTransition(() => {
@@ -301,13 +318,16 @@ const MainPage: React.FC = () => {
       setPreviousWeek(selectedWeek > 1 ? selectedWeek - 1 : 52);
       setNextWeek(selectedWeek < 52 ? selectedWeek + 1 : 1);
     }
-    
   }, [selectedWeek]);
 
   useEffect(() => {
     if (!isBoardLoaded || !currentWeek) return;
 
-    const loadData = data.filter(data => data.title === getMonthWeekLabel(currentWeek) && data.part === selectedPart.value);
+    const loadData = data.filter(
+      (data) =>
+        data.title === getMonthWeekLabel(currentWeek) &&
+        data.part === selectedPart.value
+    );
 
     if (loadData.length === 0) {
       setReportData([
@@ -321,39 +341,57 @@ const MainPage: React.FC = () => {
           allprogress: "0",
         },
       ]);
-      setInfoContent("없음");
-      setIssueContent("없음");
-      setMemoContent("없음");
+      setInfoContent("");
+      setIssueContent("");
+      setMemoContent("");
       setIsEdit(true);
 
-      if ((data.length === 0) || (data[data.length -1]?.title !== getMonthWeekLabel(currentWeek || 1) && (userTeam === selectedPart.value))) {
+      if (
+        data.length === 0 ||
+        (data[data.length - 1]?.title !== getMonthWeekLabel(currentWeek || 1) &&
+          userTeam === selectedPart.value)
+      ) {
         console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
-        
+
         OnSave();
-        loadBoard();
+        //loadBoard();
       }
 
       return; // 데이터가 없으면 실행 중지
     }
 
     // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환
-    const categories = loadData[0].category.split('^^').map(item => item.trim());
-    const weeklyPlan = loadData[0].currentWeekPlan.split('^^').map(item => item.trim());
-    const prevPlan = loadData[0].previousWeekPlan.split('^^').map(item => item.trim());
-    const prevResult = loadData[0].performance.split('^^').map(item => item.trim());
-    const completion = loadData[0].completionDate.split('^^').map(item => item.trim());
-    const progress = loadData[0].achievementRate.split('^^').map(item => item.trim());
-    const allprogress = loadData[0].totalRate.split('^^').map(item => item.trim());
+    const categories = loadData[0].category
+      .split("^^")
+      .map((item) => item.trim());
+    const weeklyPlan = loadData[0].currentWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevPlan = loadData[0].previousWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevResult = loadData[0].performance
+      .split("^^")
+      .map((item) => item.trim());
+    const completion = loadData[0].completionDate
+      .split("^^")
+      .map((item) => item.trim());
+    const progress = loadData[0].achievementRate
+      .split("^^")
+      .map((item) => item.trim());
+    const allprogress = loadData[0].totalRate
+      .split("^^")
+      .map((item) => item.trim());
 
     // ✅ 배열을 순회하면서 개별 객체 생성
     const transformedData = categories.map((_, index) => ({
-      category: categories[index] || "", 
-      weeklyPlan: weeklyPlan[index] || "", 
-      prevPlan: prevPlan[index] || "", 
-      prevResult: prevResult[index] || "", 
-      completion: completion[index] || "", 
-      progress: progress[index] || "", 
-      allprogress: allprogress[index] || ""
+      category: categories[index] || "",
+      weeklyPlan: weeklyPlan[index] || "",
+      prevPlan: prevPlan[index] || "",
+      prevResult: prevResult[index] || "",
+      completion: completion[index] || "",
+      progress: progress[index] || "",
+      allprogress: allprogress[index] || "",
     }));
 
     // 변환된 데이터를 setReportData에 저장
@@ -365,8 +403,7 @@ const MainPage: React.FC = () => {
 
     setSelectOriginalData(loadData[0]);
     setIsEdit(false);
-    
-  }, [currentWeek, isBoardLoaded, selectedPart])
+  }, [currentWeek, isBoardLoaded, selectedPart]);
 
   // 정보보고, 이슈, 메모 입력 변경 핸들러
   const handleInputChange = (
@@ -410,21 +447,21 @@ const MainPage: React.FC = () => {
     console.log("🔹 현재 주차:", currentWeek);
 
     if (recentWeeks.length === 0) {
-        setRecentWeeks([currentWeek]); // 첫 주차 저장
-        setSelectedWeek(currentWeek);
-        setReportData([
-            {
-                category: "",
-                weeklyPlan: ``,
-                prevPlan: ``,
-                prevResult: "",
-                completion: "202 . . ",
-                progress: "0%",
-                allprogress: "0%",
-            },
-        ]);
-        console.log("🔹 첫 주차 추가:", currentWeek);
-        return;
+      setRecentWeeks([currentWeek]); // 첫 주차 저장
+      setSelectedWeek(currentWeek);
+      setReportData([
+        {
+          category: "",
+          weeklyPlan: ``,
+          prevPlan: ``,
+          prevResult: "",
+          completion: "202 . . ",
+          progress: "0%",
+          allprogress: "0%",
+        },
+      ]);
+      console.log("🔹 첫 주차 추가:", currentWeek);
+      return;
     }
 
     const lastWeek = Number(recentWeeks[recentWeeks.length - 1]); // ✅ 드롭다운 마지막 주차
@@ -432,25 +469,24 @@ const MainPage: React.FC = () => {
 
     //✅ 조건: lastWeek가 현재 주차보다 작아야 추가
     if (lastWeek >= currentWeek) {
-        console.log("⚠️ 추가 불가: 현재 주차가 마지막 주차보다 크지 않음.");
-        alert("현재 주차보다 큰 주차만 추가할 수 있습니다.");
-        return;
+      console.log("⚠️ 추가 불가: 현재 주차가 마지막 주차보다 크지 않음.");
+      alert("현재 주차보다 큰 주차만 추가할 수 있습니다.");
+      return;
     }
 
-     const nextWeek = currentWeek; // ✅ 현재 주차를 그대로 사용
+    const nextWeek = currentWeek; // ✅ 현재 주차를 그대로 사용
     // ✅ 중복 체크 후 추가
     setRecentWeeks((prevWeeks) => {
-        const updatedWeeks = prevWeeks.map((week) => Number(week));
-        if (!updatedWeeks.includes(nextWeek)) {
-          
-          console.log("✅ 새로운 주차 추가됨:", nextWeek);
-            return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
-        } else {
-            console.log("⚠️ 이미 추가된 주차입니다.");
-            alert("이미 추가된 주차입니다.");
-            
-            return prevWeeks; // 변경 없음
-        }
+      const updatedWeeks = prevWeeks.map((week) => Number(week));
+      if (!updatedWeeks.includes(nextWeek)) {
+        console.log("✅ 새로운 주차 추가됨:", nextWeek);
+        return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
+      } else {
+        console.log("⚠️ 이미 추가된 주차입니다.");
+        alert("이미 추가된 주차입니다.");
+
+        return prevWeeks; // 변경 없음
+      }
     });
 
     // ✅ 드롭다운 선택값을 `nextWeek`로 변경
@@ -458,62 +494,60 @@ const MainPage: React.FC = () => {
 
     // ✅ `reportData` 초기화: 테이블을 기본 값으로 유지
     setReportData([
-        {
-            category: "",
-            weeklyPlan: ``,
-            prevPlan: ``,
-            prevResult: "",
-            completion: "202 . . ",
-            progress: "0%",
-            allprogress: "0%",
-        },
+      {
+        category: "",
+        weeklyPlan: ``,
+        prevPlan: ``,
+        prevResult: "",
+        completion: "202 . . ",
+        progress: "0%",
+        allprogress: "0%",
+      },
     ]);
 
     console.log("✅ 선택된 주차 변경됨:", nextWeek);
-};
-
+  };
 
   const OnSave = async () => {
-    console.log('reportData', reportData);
+    console.log("OnSave reportData", reportData);
 
     const board = {
       title: currentWeek !== null ? getMonthWeekLabel(currentWeek) : "",
-      category: reportData.map(obj => obj.category).join("^^"),
-      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join("^^"),
-      previousWeekPlan: reportData.map(obj => obj.prevPlan).join("^^"),
-      performance: reportData.map(obj => obj.prevResult).join("^^"),
-      completionDate: reportData.map(obj => obj.completion).join("^^"),
-      achievementRate: reportData.map(obj => obj.progress).join("^^"),
-      totalRate: reportData.map(obj => obj.allprogress).join("^^"),
+      category: reportData.map((obj) => obj.category).join("^^"),
+      currentWeekPlan: reportData.map((obj) => obj.weeklyPlan).join("^^"),
+      previousWeekPlan: reportData.map((obj) => obj.prevPlan).join("^^"),
+      performance: reportData.map((obj) => obj.prevResult).join("^^"),
+      completionDate: reportData.map((obj) => obj.completion).join("^^"),
+      achievementRate: reportData.map((obj) => obj.progress).join("^^"),
+      totalRate: reportData.map((obj) => obj.allprogress).join("^^"),
       report: infoContent,
       issue: issueContent,
-      memo: memoContent
+      memo: memoContent,
     };
-    
+
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
 
     const resData = await SaveBoard(board);
-    console.log('Save response', resData);
-  }
+    console.log("Save response", resData);
+  };
 
   const OnEdit = async () => {
-
     // if (selectOriginalData?.part !== userTeam) {
     //   console.log('파트가 틀립니다', selectOriginalData);
     //   return;
     // }
 
     const board = {
-      category: reportData.map(obj => obj.category).join("^^"),
-      currentWeekPlan: reportData.map(obj => obj.weeklyPlan).join("^^"),
-      previousWeekPlan: reportData.map(obj => obj.prevPlan).join("^^"),
-      performance: reportData.map(obj => obj.prevResult).join("^^"),
-      completionDate: reportData.map(obj => obj.completion).join("^^"),
-      achievementRate: reportData.map(obj => obj.progress).join("^^"),
-      totalRate: reportData.map(obj => obj.allprogress).join("^^"),
+      category: reportData.map((obj) => obj.category).join("^^"),
+      currentWeekPlan: reportData.map((obj) => obj.weeklyPlan).join("^^"),
+      previousWeekPlan: reportData.map((obj) => obj.prevPlan).join("^^"),
+      performance: reportData.map((obj) => obj.prevResult).join("^^"),
+      completionDate: reportData.map((obj) => obj.completion).join("^^"),
+      achievementRate: reportData.map((obj) => obj.progress).join("^^"),
+      totalRate: reportData.map((obj) => obj.allprogress).join("^^"),
       report: infoContent,
       issue: issueContent,
-      memo: memoContent
+      memo: memoContent,
     };
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
@@ -521,7 +555,26 @@ const MainPage: React.FC = () => {
     const response = await EditBoard(board, selectOriginalData?.id);
     alert(response);
     //console.log('Edit response', response);
-  }
+  };
+
+  const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>(
+    {}
+  );
+
+  // Textarea 높이 조절 함수
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = "30px"; // 기존 높이 초기화
+    textarea.style.height = textarea.scrollHeight + "px"; // 입력 내용에 맞게 조절
+  };
+
+  // 데이터 로드시 자동으로 높이 조절
+  useEffect(() => {
+    Object.keys(textareaRefs.current).forEach((key) => {
+      if (textareaRefs.current[key]) {
+        adjustTextareaHeight(textareaRefs.current[key] as HTMLTextAreaElement);
+      }
+    });
+  }, [reportData]); // reportData 변경 시 실행
 
   return (
     <div className={styles.mainContainer}>
@@ -535,12 +588,14 @@ const MainPage: React.FC = () => {
               value={selectedPart?.value}
               onChange={(e) => {
                 const selectedValue = Number(e.target.value); // string -> number 변환
-                const selected = parts.find(part => part.value === selectedValue);
+                const selected = parts.find(
+                  (part) => part.value === selectedValue
+                );
                 if (selected) {
                   setSelectedPart(selected); // 선택된 값 설정
                   setSelectedWeek(Number(recentWeeks[recentWeeks.length - 1]));
                 }
-            }}
+              }}
             >
               {filteredParts.map((part, index) => (
                 <option key={part.value} value={part.value}>
@@ -576,17 +631,19 @@ const MainPage: React.FC = () => {
               New
             </button> */}
             {/* 행 추가 버튼 */}
-            {
-              selectedPart.value === userTeam && <button className={styles.addButton} onClick={handleAddRow}>
+            {selectedPart.value === userTeam && (
+              <button className={styles.addButton} onClick={handleAddRow}>
                 Row Add
-                </button>
-            }
-              
+              </button>
+            )}
+
             {/* 저장 버튼 */}
-            {
-              selectedPart.value === userTeam && <button className={styles.saveButton} onClick={OnEdit}>Save</button>
-            }
-              
+            {selectedPart.value === userTeam && (
+              <button className={styles.saveButton} onClick={OnEdit}>
+                Save
+              </button>
+            )}
+
             {/* {
               isEdit ? ( <button className={styles.saveButton} onClick={OnSave}>Save</button>) : (
                 <button className={styles.saveButton} onClick={OnEdit}>Edit</button>)
@@ -596,14 +653,14 @@ const MainPage: React.FC = () => {
 
         {isPending && <p>⏳ 데이터를 불러오는 중...</p>}
 
-      {/* 에러 발생 시 표시 */}
-      {error?.message && <p style={{ color: "red" }}>⚠️ {error.message}</p>}
-
+        {/* 에러 발생 시 표시 */}
+        {error?.message && <p style={{ color: "red" }}>⚠️ {error.message}</p>}
 
         {/* 업무보고 테이블 */}
         {/* {data.length > 0 ? ( */}
         <div className={styles.reportTableContainer}>
-          <table className={styles.reportTable}
+          <table
+            className={styles.reportTable}
             onContextMenu={handleContextMenu} // 테이블에서 우클릭 감지
             style={{ border: "1px solid black", width: "100%" }}
           >
@@ -634,43 +691,80 @@ const MainPage: React.FC = () => {
                 <th className={styles.Progress}>전체</th>
               </tr>
             </thead>
-            <tbody >
+            <tbody>
               {reportData.map((row, index) => (
                 <tr key={index}>
-                  {Object.keys(row).map((field) => (
-                    <td key={field} className={styles.mainscrollableCell}>
+                  {Object.keys(row).map((field, colIndex) => (
+                    <td
+                      key={field}
+                      className={styles.mainscrollableCell}
+                      contentEditable={false}
+                    >
                       {field === "progress" ||
                       field === "allprogress" ||
                       field === "completion" ? (
-                        <div style={{display: 'flex'}}>
-                        <input
-                        style={{
-                          color: 'black',
-                          cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
-                        }}
-                          type="text"
-                          className={styles.inputField}
-                          value={row[field as keyof typeof row]}
-                          onChange={(e) =>
-                            handleMainChange(index, field, e.target.value)
-                          }
-                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
-                        />
-                        { (field === "progress" || field === "allprogress") && <span style={{marginRight: '2px'}}>%</span>}
+                        <div style={{ display: "flex" }}>
+                          <input
+                            style={{
+                              color: "black",
+                              cursor:
+                                recentWeeks[recentWeeks.length - 1] !==
+                                  currentWeek || userTeam !== selectedPart.value
+                                  ? "not-allowed"
+                                  : "text",
+                            }}
+                            type="text"
+                            className={styles.inputField}
+                            value={row[field as keyof typeof row]}
+                            onChange={(e) =>
+                              handleMainChange(index, field, e.target.value)
+                            }
+                            disabled={
+                              recentWeeks[recentWeeks.length - 1] !==
+                                currentWeek || userTeam !== selectedPart.value
+                            }
+                          />
+                          {(field === "progress" ||
+                            field === "allprogress") && (
+                            <span style={{ marginRight: "2px" }}>%</span>
+                          )}
                         </div>
                       ) : (
                         <textarea
-                          style={{
-                            color: 'black',
-                            cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                          ref={(el) => {
+                            textareaRefs.current[`${index}-${field}`] = el;
+                            if (el) adjustTextareaHeight(el);
                           }}
-                          className={styles.MaintextArea}
-                          value={row[field as keyof typeof row]}
-                          onChange={(e) =>
-                            handleMainChange(index, field, e.target.value)
+                          style={{
+                            color: "black",
+                            cursor:
+                              recentWeeks[recentWeeks.length - 1] !==
+                                currentWeek || userTeam !== selectedPart.value
+                                ? "not-allowed"
+                                : "text",
+                            overflowY: "auto", // ✅ 스크롤바 자동 활성화
+                            maxHeight: "200px", // ✅ 최대 높이 제한 (200px)
+                            resize: "none", // 사용자가 크기 조절하지 못하도록 설정
+                          }}
+                          className={
+                            colIndex === 0
+                              ? styles.FirstTextArea
+                              : styles.MaintextArea
                           }
-                          onInput={handleTextAreaResize} // 높이 자동 조절
-                          disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
+                          value={row[field as keyof typeof row]}
+                          onChange={(e) => {
+                            handleMainChange(index, field, e.target.value);
+                            adjustTextareaHeight(e.target);
+                          }}
+                          onInput={(e) =>
+                            adjustTextareaHeight(
+                              e.target as HTMLTextAreaElement
+                            )
+                          } // 입력 시 크기 조절
+                          disabled={
+                            recentWeeks[recentWeeks.length - 1] !==
+                              currentWeek || userTeam !== selectedPart.value
+                          }
                         />
                       )}
                     </td>
@@ -680,26 +774,26 @@ const MainPage: React.FC = () => {
             </tbody>
           </table>
           {/* 우클릭 메뉴 */}
-      {contextMenu && (
-        <div
-          style={{
-            position: "absolute",
-            top: contextMenu.mouseY,
-            left: contextMenu.mouseX,
-            background: "white",
-            border: "1px solid gray",
-            borderRadius: "0.4rem",
-            padding: "0.5rem",
-            boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
-            cursor: "pointer",
-          }}
-          onClick={handleDeleteLastRow} // 삭제 버튼 클릭 시 마지막 행 삭제
-        >
-          마지막 행 삭제
+          {contextMenu && (
+            <div
+              style={{
+                position: "absolute",
+                top: contextMenu.mouseY,
+                left: contextMenu.mouseX,
+                background: "white",
+                border: "1px solid gray",
+                borderRadius: "0.4rem",
+                padding: "0.5rem",
+                boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
+                cursor: "pointer",
+              }}
+              onClick={handleDeleteLastRow} // 삭제 버튼 클릭 시 마지막 행 삭제
+            >
+              마지막 행 삭제
+            </div>
+          )}
         </div>
-      )}
-        </div>
-         {/* ) : (<p>📌 데이터 없음</p>)} */}
+        {/* ) : (<p>📌 데이터 없음</p>)} */}
       </div>
 
       {/* 정보보고, 이슈, 메모 입력 */}
@@ -715,10 +809,17 @@ const MainPage: React.FC = () => {
                   value={infoContent}
                   onChange={(e) => handleInputChange(e, "info")}
                   style={{
-                    color: 'black',
-                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                    color: "black",
+                    cursor:
+                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                      userTeam !== selectedPart.value
+                        ? "not-allowed"
+                        : "text",
                   }}
-                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
+                  disabled={
+                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    userTeam !== selectedPart.value
+                  }
                 />
               </td>
               <th className={styles.issueHeader}>이슈</th>
@@ -728,10 +829,17 @@ const MainPage: React.FC = () => {
                   value={issueContent}
                   onChange={(e) => handleInputChange(e, "issue")}
                   style={{
-                    color: 'black',
-                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                    color: "black",
+                    cursor:
+                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                      userTeam !== selectedPart.value
+                        ? "not-allowed"
+                        : "text",
                   }}
-                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
+                  disabled={
+                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    userTeam !== selectedPart.value
+                  }
                 />
               </td>
               <th className={styles.memoHeader}>메모</th>
@@ -741,17 +849,24 @@ const MainPage: React.FC = () => {
                   value={memoContent}
                   onChange={(e) => handleInputChange(e, "memo")}
                   style={{
-                    color: 'black',
-                    cursor: (recentWeeks[recentWeeks.length-1] !== currentWeek) || (userTeam !== selectedPart.value) ? "not-allowed" : "text",
+                    color: "black",
+                    cursor:
+                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                      userTeam !== selectedPart.value
+                        ? "not-allowed"
+                        : "text",
                   }}
-                  disabled={recentWeeks[recentWeeks.length-1] !== currentWeek || (userTeam !== selectedPart.value)}
+                  disabled={
+                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    userTeam !== selectedPart.value
+                  }
                 />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-        {/* ) : (<p>📌 데이터 없음</p>)} */}
+      {/* ) : (<p>📌 데이터 없음</p>)} */}
     </div>
   );
 };

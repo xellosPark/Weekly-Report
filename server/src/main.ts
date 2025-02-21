@@ -11,7 +11,7 @@ async function bootstrap() {
 
   app.use(
     cors({
-      origin: '*', // 허용할 클라이언트 URL
+      origin: ['*', "http://localhost:9801", "http://localhost:3000", "http://localhost:3002"], // 허용할 클라이언트 URL
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       credentials: true,
     }),

@@ -9,21 +9,26 @@ const api = axios.create({
 // Request Interceptor: 요청 시 Access Token을 헤더에 추가
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        //console.log('[요청 인터셉터] 요청 시작:', config.url);
+        console.log('[요청 인터셉터] 요청 시작:', config.url);
 
         const token = localStorage.getItem('accessToken');  // 로컬스토리지에서 accessToken 가져오기
 
         if (token) {
-            //console.log('[요청 인터셉터] Access Token 추가:', token);
+            console.log('[요청 인터셉터] Access Token 추가:', token);
 
             // AxiosHeaders로 헤더를 설정 (타입 호환을 위해 AxiosHeaders 사용)
-            const headers = config.headers || {};  // headers가 undefined일 경우 빈 객체로 초기화
+            const headers = config.headers || {}; // headers가 undefined일 경우 빈 객체로 초기화
 
-            // AxiosHeaders로 설정된 headers
+            console.log("📌 기존 요청 헤더:", headers); // 기존 헤더 로그
+
+            // 새로운 Authorization 헤더를 포함한 AxiosHeaders 설정
             config.headers = new AxiosHeaders({
-                ...headers,  // 기존 헤더를 확장하여 새로운 Authorization 헤더 추가
+                ...headers, // 기존 헤더를 유지하면서 새로운 Authorization 헤더 추가
                 Authorization: `Bearer ${token}`,
             });
+
+            console.log("🔑 추가된 Authorization 헤더:", `Bearer ${token}`); // 추가된 토큰 로그
+            console.log("📌 최종 설정된 요청 헤더:", config.headers); // 최종 헤더 로그
         }
 
         return config;
