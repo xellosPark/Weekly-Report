@@ -25,7 +25,7 @@ export class AuthDto {
      */
     @IsNotEmpty({ message: '비밀번호는 필수 입력 항목입니다.' })
     @Length(6, 20, { message: '비밀번호는 최소 8자에서 최대 20자까지 입력 가능합니다.' })
-    @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/, {
+    @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/, {
         message: '비밀번호는 영문과 숫자를 포함해야 합니다.',
     })
     password: string;
