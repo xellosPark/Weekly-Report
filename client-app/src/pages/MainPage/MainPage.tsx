@@ -44,6 +44,7 @@ const MainPage: React.FC = () => {
   const [recentWeeks, setRecentWeeks] = useState<(number | string)[]>([]); // 최근 6주 저장
   const [nextWeek, setNextWeek] = useState<number | null>(null); // 추가할 수 있는 주차 저장장
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null); // 선택한 주차 저장장
+  const [copiedWeek, setCopiedWeek] = useState<number | null>(null); // 선택한 주차 저장장
   const [currentYear, setCurrentYear] = useState<number>(
     new Date().getFullYear()
   );
@@ -246,15 +247,6 @@ const MainPage: React.FC = () => {
     return `${month}월 ${weekOfMonth}주차`;
   };
 
-  const loadBoard = async () => {
-    //const id = userId;// Number(localStorage.getItem("userId"));
-    //const team = userTeam;//Number(localStorage.getItem("userTeam"));
-    const resData = await LoadBoard(userId, userTeam);
-    setData(resData);
-    setIsBoardLoaded(true);
-    setSelectOriginalData(resData[resData.length - 1]);
-  };
-
   // ✅ 기존 `useEffect` 업데이트: 새로운 주차가 드롭다운에 반영되도록 변경
   useEffect(() => {
     //🔹 LocalStorage에서 'team' 값 가져오기 (문자열을 숫자로 변환)
@@ -287,6 +279,7 @@ const MainPage: React.FC = () => {
 
     setCurrentWeek(weekNow);
     setSelectedWeek(weekNow);
+    setCopiedWeek(weekNow);
     checkNextWeekAvailable();
 
     //🔹 team 값에 따라 필터링
@@ -346,53 +339,10 @@ const MainPage: React.FC = () => {
       setMemoContent("");
       setIsEdit(true);
 
-      // if (
-      //   data.length === 0 ||
-      //   (data[data.length - 1]?.title !== getMonthWeekLabel(currentWeek || 1) &&
-      //     userTeam === selectedPart.value)
-      // ) {
-      //   console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
-
-      //   OnSave();
-      //   loadBoard();
-      // }
-
       return; // 데이터가 없으면 실행 중지
     }
 
-    // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환
-    const categories = loadData[0].category
-      .split("^^")
-      .map((item) => item.trim());
-    const weeklyPlan = loadData[0].currentWeekPlan
-      .split("^^")
-      .map((item) => item.trim());
-    const prevPlan = loadData[0].previousWeekPlan
-      .split("^^")
-      .map((item) => item.trim());
-    const prevResult = loadData[0].performance
-      .split("^^")
-      .map((item) => item.trim());
-    const completion = loadData[0].completionDate
-      .split("^^")
-      .map((item) => item.trim());
-    const progress = loadData[0].achievementRate
-      .split("^^")
-      .map((item) => item.trim());
-    const allprogress = loadData[0].totalRate
-      .split("^^")
-      .map((item) => item.trim());
-
-    // ✅ 배열을 순회하면서 개별 객체 생성
-    const transformedData = categories.map((_, index) => ({
-      category: categories[index] || "",
-      weeklyPlan: weeklyPlan[index] || "",
-      prevPlan: prevPlan[index] || "",
-      prevResult: prevResult[index] || "",
-      completion: completion[index] || "",
-      progress: progress[index] || "",
-      allprogress: allprogress[index] || "",
-    }));
+    const transformedData = transData(loadData[0]);
 
     // 변환된 데이터를 setReportData에 저장
     setReportData(transformedData);
@@ -441,73 +391,6 @@ const MainPage: React.FC = () => {
     }
   };
 
-  // ✅ 새로운 주차 추가하는 함수
-  const handleNewSheet = () => {
-    const currentWeek = getWeekNumber(new Date()); // ✅ 현재 주차 계산
-    console.log("🔹 현재 주차:", currentWeek);
-
-    if (recentWeeks.length === 0) {
-      setRecentWeeks([currentWeek]); // 첫 주차 저장
-      setSelectedWeek(currentWeek);
-      setReportData([
-        {
-          category: "",
-          weeklyPlan: ``,
-          prevPlan: ``,
-          prevResult: "",
-          completion: "202 . . ",
-          progress: "0%",
-          allprogress: "0%",
-        },
-      ]);
-      console.log("🔹 첫 주차 추가:", currentWeek);
-      return;
-    }
-
-    const lastWeek = Number(recentWeeks[recentWeeks.length - 1]); // ✅ 드롭다운 마지막 주차
-    console.log("🔹 드롭다운 마지막 주차:", lastWeek);
-
-    //✅ 조건: lastWeek가 현재 주차보다 작아야 추가
-    if (lastWeek >= currentWeek) {
-      console.log("⚠️ 추가 불가: 현재 주차가 마지막 주차보다 크지 않음.");
-      alert("현재 주차보다 큰 주차만 추가할 수 있습니다.");
-      return;
-    }
-
-    const nextWeek = currentWeek; // ✅ 현재 주차를 그대로 사용
-    // ✅ 중복 체크 후 추가
-    setRecentWeeks((prevWeeks) => {
-      const updatedWeeks = prevWeeks.map((week) => Number(week));
-      if (!updatedWeeks.includes(nextWeek)) {
-        console.log("✅ 새로운 주차 추가됨:", nextWeek);
-        return [...prevWeeks, nextWeek]; // ✅ 맨 아래에 추가
-      } else {
-        console.log("⚠️ 이미 추가된 주차입니다.");
-        alert("이미 추가된 주차입니다.");
-
-        return prevWeeks; // 변경 없음
-      }
-    });
-
-    // ✅ 드롭다운 선택값을 `nextWeek`로 변경
-    setSelectedWeek(nextWeek);
-
-    // ✅ `reportData` 초기화: 테이블을 기본 값으로 유지
-    setReportData([
-      {
-        category: "",
-        weeklyPlan: ``,
-        prevPlan: ``,
-        prevResult: "",
-        completion: "202 . . ",
-        progress: "0%",
-        allprogress: "0%",
-      },
-    ]);
-
-    console.log("✅ 선택된 주차 변경됨:", nextWeek);
-  };
-
   const OnSave = async () => {
     console.log("OnSave reportData", reportData);
 
@@ -529,6 +412,10 @@ const MainPage: React.FC = () => {
 
     const response = await SaveBoard(board);
     alert(response);
+
+    const result = await LoadBoard(userId, userTeam);
+    setData(result); // API 데이터를 직접 useState에 저장
+    setIsBoardLoaded(true);
   };
 
   const OnEdit = async () => {
@@ -556,6 +443,71 @@ const MainPage: React.FC = () => {
     alert(response);
     //console.log('Edit response', response);
   };
+
+  const onCopyAndPaste = async () => {
+    console.log('선택 주차', copiedWeek);
+    const title = getMonthWeekLabel(Number(copiedWeek));
+    const filterData = data.filter((data) => data.title === title && data.part === userTeam);
+    console.log('filterData', filterData, userTeam);
+    if (recentWeeks[recentWeeks.length - 1] !== currentWeek) {
+      alert('이전 주차에는 붙여넣기가 안됩니다');
+      return;
+    }
+    if (filterData.length <= 0) {
+      alert('해당 주차의 데이터가 없습니다');
+      return;
+    }
+
+    const transformedData = transData(filterData[0]);
+
+    // 변환된 데이터를 setReportData에 저장
+    setReportData(transformedData);
+
+    setInfoContent(filterData[0].report);
+    setIssueContent(filterData[0].issue);
+    setMemoContent(filterData[0].memo);
+
+    setSelectOriginalData(filterData[0]);
+  }
+
+  const transData = (loadData:Board) => {
+
+    // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환
+    const categories = loadData.category
+      .split("^^")
+      .map((item) => item.trim());
+    const weeklyPlan = loadData.currentWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevPlan = loadData.previousWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevResult = loadData.performance
+      .split("^^")
+      .map((item) => item.trim());
+    const completion = loadData.completionDate
+      .split("^^")
+      .map((item) => item.trim());
+    const progress = loadData.achievementRate
+      .split("^^")
+      .map((item) => item.trim());
+    const allprogress = loadData.totalRate
+      .split("^^")
+      .map((item) => item.trim());
+
+    // ✅ 배열을 순회하면서 개별 객체 생성
+    const transformedData = categories.map((_, index) => ({
+      category: categories[index] || "",
+      weeklyPlan: weeklyPlan[index] || "",
+      prevPlan: prevPlan[index] || "",
+      prevResult: prevResult[index] || "",
+      completion: completion[index] || "",
+      progress: progress[index] || "",
+      allprogress: allprogress[index] || "",
+    }));
+
+    return transformedData;
+  }
 
   const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>(
     {}
@@ -617,6 +569,7 @@ const MainPage: React.FC = () => {
                 </option>
               ))}
             </select>
+          
           </div>
 
           {/* 제목을 가운데 정렬 */}
@@ -624,6 +577,27 @@ const MainPage: React.FC = () => {
             {currentWeek !== null ? getMonthWeekLabel(currentWeek) : ""}{" "}
             업무보고
           </h3>
+
+          <div>
+            {userTeam === selectedPart.value && 
+            <>
+            <select
+              className={styles.dropdown}
+              value={copiedWeek || ""}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setCopiedWeek(Number(e.target.value))
+              }
+            >
+              {recentWeeks.map((week, index) => (
+                <option key={index} value={week}>
+                  {`${week}주 (${getMonthWeekLabel(Number(week))})`}
+                </option>
+              ))}
+            </select>
+            <button className={styles.addButton} onClick={onCopyAndPaste}>주차 붙여 넣기</button>
+            </>
+            }
+          </div>
 
           <div>
             {/* 행 추가 버튼 */}
@@ -707,11 +681,11 @@ const MainPage: React.FC = () => {
                           <input
                             style={{
                               color: "black",
-                              cursor:
-                                recentWeeks[recentWeeks.length - 1] !==
-                                  currentWeek || userTeam !== selectedPart.value
-                                  ? "not-allowed"
-                                  : "text",
+                              // cursor:
+                              //   recentWeeks[recentWeeks.length - 1] !==
+                              //     currentWeek || userTeam !== selectedPart.value
+                              //     ? "not-allowed"
+                              //     : "text",
                             }}
                             type="text"
                             className={styles.inputField}
@@ -719,10 +693,10 @@ const MainPage: React.FC = () => {
                             onChange={(e) =>
                               handleMainChange(index, field, e.target.value)
                             }
-                            disabled={
-                              recentWeeks[recentWeeks.length - 1] !==
-                                currentWeek || userTeam !== selectedPart.value
-                            }
+                            // disabled={
+                            //   recentWeeks[recentWeeks.length - 1] !==
+                            //     currentWeek || userTeam !== selectedPart.value
+                            // }
                           />
                           {(field === "progress" ||
                             field === "allprogress") && (
@@ -737,11 +711,11 @@ const MainPage: React.FC = () => {
                           }}
                           style={{
                             color: "black",
-                            cursor:
-                              recentWeeks[recentWeeks.length - 1] !==
-                                currentWeek || userTeam !== selectedPart.value
-                                ? "not-allowed"
-                                : "text",
+                            // cursor:
+                            //   recentWeeks[recentWeeks.length - 1] !==
+                            //     currentWeek || userTeam !== selectedPart.value
+                            //     ? "not-allowed"
+                            //     : "text",
                             overflowY: "auto", // ✅ 스크롤바 자동 활성화
                             maxHeight: "200px", // ✅ 최대 높이 제한 (200px)
                             resize: "none", // 사용자가 크기 조절하지 못하도록 설정
@@ -761,10 +735,10 @@ const MainPage: React.FC = () => {
                               e.target as HTMLTextAreaElement
                             )
                           } // 입력 시 크기 조절
-                          disabled={
-                            recentWeeks[recentWeeks.length - 1] !==
-                              currentWeek || userTeam !== selectedPart.value
-                          }
+                          // disabled={
+                          //   recentWeeks[recentWeeks.length - 1] !==
+                          //     currentWeek || userTeam !== selectedPart.value
+                          // }
                         />
                       )}
                     </td>
@@ -810,16 +784,16 @@ const MainPage: React.FC = () => {
                   onChange={(e) => handleInputChange(e, "info")}
                   style={{
                     color: "black",
-                    cursor:
-                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                      userTeam !== selectedPart.value
-                        ? "not-allowed"
-                        : "text",
+                    // cursor:
+                    //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    //   userTeam !== selectedPart.value
+                    //     ? "not-allowed"
+                    //     : "text",
                   }}
-                  disabled={
-                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                    userTeam !== selectedPart.value
-                  }
+                  // disabled={
+                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                  //   userTeam !== selectedPart.value
+                  // }
                 />
               </td>
               <th className={styles.issueHeader}>이슈</th>
@@ -830,16 +804,16 @@ const MainPage: React.FC = () => {
                   onChange={(e) => handleInputChange(e, "issue")}
                   style={{
                     color: "black",
-                    cursor:
-                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                      userTeam !== selectedPart.value
-                        ? "not-allowed"
-                        : "text",
+                    // cursor:
+                    //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    //   userTeam !== selectedPart.value
+                    //     ? "not-allowed"
+                    //     : "text",
                   }}
-                  disabled={
-                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                    userTeam !== selectedPart.value
-                  }
+                  // disabled={
+                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                  //   userTeam !== selectedPart.value
+                  // }
                 />
               </td>
               <th className={styles.memoHeader}>메모</th>
@@ -850,16 +824,16 @@ const MainPage: React.FC = () => {
                   onChange={(e) => handleInputChange(e, "memo")}
                   style={{
                     color: "black",
-                    cursor:
-                      recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                      userTeam !== selectedPart.value
-                        ? "not-allowed"
-                        : "text",
+                    // cursor:
+                    //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                    //   userTeam !== selectedPart.value
+                    //     ? "not-allowed"
+                    //     : "text",
                   }}
-                  disabled={
-                    recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                    userTeam !== selectedPart.value
-                  }
+                  // disabled={
+                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
+                  //   userTeam !== selectedPart.value
+                  // }
                 />
               </td>
             </tr>

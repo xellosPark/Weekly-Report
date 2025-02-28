@@ -81,6 +81,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleKeyDown = (event: { key: string; }) => {
+    if (event.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   const handleTest = async () => {
     try {
       const response = await api.post("/auth/test");
@@ -120,6 +126,7 @@ export default function LoginPage() {
             onChange={(e) =>
               setPassword(e.target.value.trim())
             } /* ✅ 공백 방지 */
+            onKeyDown={handleKeyDown}
             autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
           />
 

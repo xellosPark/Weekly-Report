@@ -98,7 +98,7 @@ export class BoardsService {
     // });
     const board = await this.existBoard(boardDto, userId);
 
-    console.log('board', board);
+    console.log('update board', board);
     
 
     if (!board) {
