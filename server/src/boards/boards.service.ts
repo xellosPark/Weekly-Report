@@ -18,6 +18,24 @@ export class BoardsService {
     private userRepository: Repository<User>,
   ) { }
 
+
+  async existBoard(boardDto: BoardDto, userId: number): Promise<Board> {
+    const user = await this.userRepository.findOne({ where: { id: userId  } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const board = await this.boardRepository.find({
+      where: { 
+        part: user.team,
+        title: boardDto.title,
+        user: { id: userId } }, // 🔗 userId에 해당하는 board 조회
+        relations: ['user'],
+    });
+
+    return board[0];
+  }
+
   async createBoard(boardDto: BoardDto, userId: number): Promise<Board> {
     
     const user = await this.userRepository.findOne({ where: { id: userId  } });
@@ -71,7 +89,37 @@ export class BoardsService {
     });
   }
 
-  async updateBoard(userId: number, boardId: number, updateBoardDto: UpdateBoardDto): Promise<UpdateBoardDto> {
+  async updateBoard(userId: number, boardDto: BoardDto): Promise<UpdateBoardDto> {
+    // 1. 해당 board가 존재하는지 확인
+    
+    // const board = await this.boardRepository.findOne({
+    //   where: { id: boardId },
+    //   relations: ['user'], // FK 관계 테이블 로드
+    // });
+    const board = await this.existBoard(boardDto, userId);
+
+    console.log('board', board);
+    
+
+    if (!board) {
+      throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+    }
+
+    // 2. 요청한 user가 해당 board의 소유자인지 확인
+    if (board.user.id !== userId) {
+      throw new ForbiddenException('해당 게시글을 수정할 권한이 없습니다.');
+    }
+
+
+    // 3. 데이터 업데이트 및 저장
+    Object.assign(board, boardDto);
+    this.boardRepository.save(board);
+
+    console.log('Board Update 완료');
+    return boardDto;
+  }
+
+  async updateBoardWhitBoardId(userId: number, boardId: number, updateBoardDto: UpdateBoardDto): Promise<UpdateBoardDto> {
     // 1. 해당 board가 존재하는지 확인
     
     const board = await this.boardRepository.findOne({

@@ -41,7 +41,7 @@ export const SaveBoard = async (board: any) => {
         }, // ✅ JSON 명시
       }
     );
-    if (response?.data) return response?.data;// "저장되었습니다";
+    if (response?.data) return "저장되었습니다";// "저장되었습니다";
   } catch (error) {
     console.log(error);
 

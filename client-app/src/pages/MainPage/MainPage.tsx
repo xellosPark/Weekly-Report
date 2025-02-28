@@ -346,16 +346,16 @@ const MainPage: React.FC = () => {
       setMemoContent("");
       setIsEdit(true);
 
-      if (
-        data.length === 0 ||
-        (data[data.length - 1]?.title !== getMonthWeekLabel(currentWeek || 1) &&
-          userTeam === selectedPart.value)
-      ) {
-        console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
+      // if (
+      //   data.length === 0 ||
+      //   (data[data.length - 1]?.title !== getMonthWeekLabel(currentWeek || 1) &&
+      //     userTeam === selectedPart.value)
+      // ) {
+      //   console.log(`${currentWeek}에 해당하는 데이터가 없어 새로 추가함`);
 
-        OnSave();
-        //loadBoard();
-      }
+      //   OnSave();
+      //   loadBoard();
+      // }
 
       return; // 데이터가 없으면 실행 중지
     }
@@ -527,8 +527,8 @@ const MainPage: React.FC = () => {
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
 
-    const resData = await SaveBoard(board);
-    console.log("Save response", resData);
+    const response = await SaveBoard(board);
+    alert(response);
   };
 
   const OnEdit = async () => {
@@ -639,7 +639,7 @@ const MainPage: React.FC = () => {
 
             {/* 저장 버튼 */}
             {selectedPart.value === userTeam && (
-              <button className={styles.saveButton} onClick={OnEdit}>
+              <button className={styles.saveButton} onClick={OnSave}>
                 Save
               </button>
             )}

@@ -66,9 +66,15 @@ export class BoardsController {
         
         console.log('createBoard id', userId);
         
-        console.log('board', createBoardDto);
+        //console.log('board', createBoardDto);
+
+        const exist = await this.boardsService.existBoard(createBoardDto, userId);
+        //console.log('board 존재', exist);
+        if (exist === undefined) {
+            return this.boardsService.createBoard(createBoardDto, userId);
+        }
+        else return this.boardsService.updateBoard(userId, createBoardDto);
         
-        return this.boardsService.createBoard(createBoardDto, userId);
     }
 
     // @Post()
@@ -85,7 +91,7 @@ export class BoardsController {
         const userId = req.user.id;
         console.log('boardId', boardId, userId, req.user);
         
-        return this.boardsService.updateBoard(userId, boardId, updateBoardDto);
+        return this.boardsService.updateBoardWhitBoardId(userId, boardId, updateBoardDto);
     }
 }
 
