@@ -68,13 +68,17 @@ export class BoardsService {
     const user = await this.userRepository.findOne({ where: { id: userId  } });
     if (!user) {
       throw new NotFoundException("User not found");
-    }
+    } 
 
     if (user.team !== 10) {
       throw new NotFoundException("Admin User not found");
     }
-
-    return await this.boardRepository.find();
+    //console.log('team', user.team);
+    
+    const data = await this.boardRepository.find();
+    //console.log('data', data);
+    
+    return data;// await this.boardRepository.find();
   }
   async loadBoard(userId: number, team: number): Promise<Board[]> {
     const user = await this.userRepository.findOne({ where: { id: userId  } });

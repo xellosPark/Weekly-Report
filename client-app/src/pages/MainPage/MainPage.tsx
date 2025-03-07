@@ -161,17 +161,6 @@ const MainPage: React.FC = () => {
     };
   }, []);
 
-  // 스크롤 이동 함수 (좌우 스크롤)
-  const scroll = (direction: number) => {
-    if (scrollRef.current) {
-      const scrollAmount = 300; // 이동 거리 설정
-      scrollRef.current.scrollBy({
-        left: direction * scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
   // 업무 보고 데이터 (테이블 row)
   const [reportData, setReportData] = useState([
     {
@@ -315,13 +304,13 @@ const MainPage: React.FC = () => {
 
   useEffect(() => {
     if (!isBoardLoaded || !currentWeek) return;
-
+    
     const loadData = data.filter(
-      (data) =>
+      (data) => 
         data.title === getMonthWeekLabel(currentWeek) &&
         data.part === selectedPart.value
     );
-
+    
     if (loadData.length === 0) {
       setReportData([
         {
@@ -365,21 +354,6 @@ const MainPage: React.FC = () => {
     if (type === "memo") setMemoContent(e.target.value);
   };
 
-  // textarea 높이 자동 조절 함수
-  const handleTextAreaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
-
-    target.style.height = "30px"; // 최소 높이 설정
-    target.style.height = `${target.scrollHeight}px`; // 입력 내용에 맞게 높이 증가
-
-    // 최대 높이를 초과하면 스크롤 활성화
-    if (target.scrollHeight > 150) {
-      target.style.overflowY = "auto";
-    } else {
-      target.style.overflowY = "hidden";
-    }
-  };
-
   // ✅ 다음 주차를 생성할 수 있는지 확인하는 함수
   const checkNextWeekAvailable = () => {
     const today = new Date();
@@ -414,14 +388,12 @@ const MainPage: React.FC = () => {
 
     console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
 
-    const response = await SaveBoard(board);
+    const response = await SaveBoard(board, userId);
     alert(response);
 
     const result = await LoadBoard(userId, userTeam);
     setData(result); // API 데이터를 직접 useState에 저장
     setIsBoardLoaded(true);
-    //alert("save 후 자동 로그아웃 처리됨");
-    //logout();
   };
 
   const OnEdit = async () => {
@@ -686,7 +658,6 @@ const MainPage: React.FC = () => {
                 
                 
                 const isCompleted = row.progress === "100" && row.allprogress === "100";
-                console.log('row', row.progress, row.allprogress, isCompleted);
                 return (
                 <tr key={index} style={{ backgroundColor: isCompleted ? "#bfeeb3" : "transparent" }}>
                   {Object.keys(row).map((field, colIndex) => (

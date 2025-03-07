@@ -11,7 +11,7 @@ export class BoardsController {
 
     @Get(':id')
     async allLoadBoard(@Param("id", ParseIntPipe) id: number) {
-        console.log('allLoadBoard id', id);
+        //console.log('allLoadBoard id', id);
         return this.boardsService.allLoadBoard(id);
     }
 

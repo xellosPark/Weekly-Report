@@ -1,14 +1,12 @@
 import axios from "axios";
 import api from "./api";
 
-const id = Number(localStorage.getItem("userId"));
-const team = Number(localStorage.getItem("userTeam"));
 /* GET */
 
 // 로그인 하자마자 바로 업데이트가 필요한 부분으로 param으로 전달
 export const LoadBoard = async (id_: number, team_: number) => {
   let response = null;
-  if (team === 10) {
+  if (team_ === 10) {
     response = await api.get(
       `http://localhost:9801/api/boards/${id_}`,
       {
@@ -26,14 +24,14 @@ export const LoadBoard = async (id_: number, team_: number) => {
   return response?.data;
 }
 
-export const SaveBoard = async (board: any) => {
+export const SaveBoard = async (board: any, id_: number) => {
   const accessToken = localStorage.getItem('accessToken');
 
   console.log("📤 SaveBoard 호출됨 - 전송할 데이터:", board);
   console.log("🔑 Access Token:", accessToken);
   try {
     const response = await api.post(
-      `http://localhost:9801/api/boards/${id}`,
+      `http://localhost:9801/api/boards/${id_}`,
       JSON.stringify(board), // JSON 데이터 전송
       {
         headers: {
