@@ -76,7 +76,7 @@ const MainPage: React.FC = () => {
   const [data, setData] = useState<Board[]>([]);
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
-  const { isAuth, userId, userTeam } = useAuth();
+  const { isAuth, userId, userTeam, logout } = useAuth();
   // 우클릭 메뉴 상태
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -393,7 +393,11 @@ const MainPage: React.FC = () => {
 
   const OnSave = async () => {
     console.log("OnSave reportData", reportData);
+    const isConfirmed = window.confirm("저장하시겠습니까?");
 
+    if (!isConfirmed) {
+      return;
+    }
     const board = {
       title: currentWeek !== null ? getMonthWeekLabel(currentWeek) : "",
       category: reportData.map((obj) => obj.category).join("^^"),
@@ -416,6 +420,8 @@ const MainPage: React.FC = () => {
     const result = await LoadBoard(userId, userTeam);
     setData(result); // API 데이터를 직접 useState에 저장
     setIsBoardLoaded(true);
+    //alert("save 후 자동 로그아웃 처리됨");
+    //logout();
   };
 
   const OnEdit = async () => {
@@ -445,8 +451,17 @@ const MainPage: React.FC = () => {
   };
 
   const onCopyAndPaste = async () => {
-    console.log('선택 주차', copiedWeek);
-    const title = getMonthWeekLabel(Number(copiedWeek));
+    if (currentWeek === 0)
+    return;
+    //console.log('선택 주차', copiedWeek);
+    const isConfirmed = window.confirm("이전 주차의 내용으로 업데이트 하시겠습니까? 진행시 작성된 내용이 사라집니다.");
+
+    if (!isConfirmed) {
+      alert('취소되었습니다.');
+      return;
+    }
+
+    const title = getMonthWeekLabel(Number((currentWeek || 0) - 1));
     const filterData = data.filter((data) => data.title === title && data.part === userTeam);
     console.log('filterData', filterData, userTeam);
     if (recentWeeks[recentWeeks.length - 1] !== currentWeek) {
@@ -581,7 +596,7 @@ const MainPage: React.FC = () => {
           <div>
             {userTeam === selectedPart.value && 
             <>
-            <select
+            {/* <select
               className={styles.dropdown}
               value={copiedWeek || ""}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
@@ -593,8 +608,8 @@ const MainPage: React.FC = () => {
                   {`${week}주 (${getMonthWeekLabel(Number(week))})`}
                 </option>
               ))}
-            </select>
-            <button className={styles.addButton} onClick={onCopyAndPaste}>주차 붙여 넣기</button>
+            </select> 
+            <button className={styles.addButton} onClick={onCopyAndPaste}>주차 붙여 넣기</button> */}
             </>
             }
           </div>
@@ -605,6 +620,7 @@ const MainPage: React.FC = () => {
               New
             </button> */}
             {/* 행 추가 버튼 */}
+            <button className={styles.addButton} onClick={onCopyAndPaste}>전 주차 붙여 넣기</button>
             {selectedPart.value === userTeam && (
               <button className={styles.addButton} onClick={handleAddRow}>
                 Row Add
@@ -666,8 +682,13 @@ const MainPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {reportData.map((row, index) => (
-                <tr key={index}>
+              {reportData.map((row, index) => {
+                
+                
+                const isCompleted = row.progress === "100" && row.allprogress === "100";
+                console.log('row', row.progress, row.allprogress, isCompleted);
+                return (
+                <tr key={index} style={{ backgroundColor: isCompleted ? "#bfeeb3" : "transparent" }}>
                   {Object.keys(row).map((field, colIndex) => (
                     <td
                       key={field}
@@ -744,7 +765,7 @@ const MainPage: React.FC = () => {
                     </td>
                   ))}
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
           {/* 우클릭 메뉴 */}

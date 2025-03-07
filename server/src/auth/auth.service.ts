@@ -65,13 +65,13 @@ export class AuthService {
         // jwt service 사용할수 있도록 private jwtService: JwtService
         const accessToken = this.jwtService.sign(payload, {
             secret: 'Secret8877',
-            expiresIn: '30m', // 30분 동안 유효
+            expiresIn: '5m', // 30분 동안 유효
             //secret: this.configService.get('JWT_SECRET'),
             //expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'),
         });
         const refreshToken = this.jwtService.sign(payload, {
             secret: 'Secret8877',
-            expiresIn: '30d', // 30일
+            expiresIn: '10m', // 30일
             //secret: this.configService.get('JWT_SECRET'),
             //expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'),
         })
@@ -88,7 +88,7 @@ export class AuthService {
         // jwt service 사용할수 있도록 private jwtService: JwtService
         const accessToken = this.jwtService.sign(payload, {
             secret: 'Secret8877',
-            expiresIn: '30m', // 30분 동안 유효
+            expiresIn: '5m', // 30분 동안 유효
             //secret: this.configService.get('JWT_SECRET'),
             //expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'),
         });

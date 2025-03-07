@@ -56,7 +56,7 @@ export class AuthController {
             secure: false,
             sameSite: 'strict', // ✅ CSRF 공격 방어
             path: '/', // ✅ 쿠키 경로 설정
-            maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
+            maxAge: 10 * 60 * 1000, // 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
         });
 
         return res.json({ accessToken, refreshToken, userData });
@@ -79,7 +79,7 @@ export class AuthController {
             secure: false,
             sameSite: 'strict', // ✅ CSRF 공격 방어
             path: '/', // ✅ 쿠키 경로 설정
-            maxAge: 7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
+            maxAge: 10 * 60 * 1000 //  7 * 24 * 60 * 60 * 1000, // ✅ 7일간 유지
         });
 
         console.log('token 재발급');
