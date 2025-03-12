@@ -10,6 +10,7 @@ export class BoardsController {
     constructor(private boardsService: BoardsService) { }
 
     @Get(':id')
+    @UseGuards(AuthGuard('jwt'))
     async allLoadBoard(@Param("id", ParseIntPipe) id: number) {
         //console.log('allLoadBoard id', id);
         return this.boardsService.allLoadBoard(id);
@@ -23,6 +24,7 @@ export class BoardsController {
      */
 
     @Get()
+    @UseGuards(AuthGuard('jwt'))
     async loadBoard(@Query("id", ParseIntPipe) id: number, @Query('team') team: number) {
         //console.log('id team', id, team);
         return this.boardsService.loadBoard(id, team);

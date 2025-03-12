@@ -75,9 +75,44 @@
   margin-right: 1em;
 }
 
+.copyButton {
+  background: #66A593; /* 투명 배경 */
+  color: white;
+  font-size: 0.9em;
+  padding: 0.5em 1em;
+  border: 1px solid #66A593; /* 외각 테두리 */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-right: 1em;
+}
+
+.rowAddButton {
+  background:  #CCCCFF; /* 투명 배경 */
+  color: white;
+  font-size: 1em;
+  padding: 0.5em 1em;
+  border: 1px solid  #CCCCFF; /* 외각 테두리 */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-right: 1em;
+}
+
 /* 버튼 호버 효과 */
 .addButton:hover {
   background: #98fc8e;
+}
+
+
+/* 버튼 호버 효과 */
+.copyButton:hover {
+  background: #8cc4b4;
+}
+
+/* 버튼 호버 효과 */
+.rowAddButton:hover {
+  background: #c8c8eb;
 }
 
 /* 테이블을 감싸는 컨테이너 (세로 크기 고정, 전체 스크롤) */

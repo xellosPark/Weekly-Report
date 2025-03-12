@@ -586,15 +586,15 @@ const MainPage: React.FC = () => {
             }
           </div>
 
-          <div>
+          <div style={{display: 'flex'}}>
             {/* 행 추가 버튼 */}
             {/* <button className={styles.addButton} onClick={handleNewSheet}>
               New
             </button> */}
             {/* 행 추가 버튼 */}
-            <button className={styles.addButton} onClick={onCopyAndPaste}>전 주차 붙여 넣기</button>
+            <button className={styles.copyButton} onClick={onCopyAndPaste}>전 주차 Copy</button>
             {selectedPart.value === userTeam && (
-              <button className={styles.addButton} onClick={handleAddRow}>
+              <button className={styles.rowAddButton} onClick={handleAddRow}>
                 Row Add
               </button>
             )}
