@@ -31,15 +31,17 @@ export default function ChangePassword({ onClose }: ChangePasswordProps) {
 
     const res = await changePassword(currentPw, newPw);
 
-    // 🔍 응답 전체 출력
-    console.log("[ChangePassword] 응답 전체:", res);
+    // // 🔍 응답 전체 출력
+    // console.log("[ChangePassword] 응답 전체:", res);
 
-    // 🔍 상태 코드 출력
-    console.log("[ChangePassword] 응답 status:", res.status);
+    // // 🔍 상태 코드 출력
+    // console.log("[ChangePassword] 응답 status:", res.status);
 
-    // 🔍 실제 데이터 출력
-    console.log("[ChangePassword] 응답 data:", res.data.success);
+    // // 🔍 실제 데이터 출력
+    // console.log("[ChangePassword] 응답 data:", res.data.success);
 
+    //GET /api/user/1 → 200 OK
+    //POST /api/users → 201 Created
     if (res.status === 201 && res.data.success) {
       alert(res.data.message);
       console.log("✅ onClose 실행 전");
