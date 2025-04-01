@@ -155,4 +155,46 @@ export class AuthService {
         auth.refreshToken = null; // Refresh Token 삭제
         await this.authRepository.save(auth);
     }
+
+    async changePassword(userId: number, currentPassword: string, newPassword: string,
+    ): Promise<{ success: boolean; message: string }> {
+        //console.log('[ChangePassword] 요청 시작:', { userId, currentPassword, newPassword });
+
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['auth'],
+        });
+
+        if (!user) {
+            console.warn('[ChangePassword] 사용자 없음:', userId);
+            return { success: false, message: '사용자를 찾을 수 없습니다.' };
+        }
+
+        if (!user.auth) {
+            console.warn('[ChangePassword] 사용자에 연결된 auth 없음:', userId);
+            return { success: false, message: '인증 정보가 존재하지 않습니다.' };
+        }
+
+        console.log('[ChangePassword] 사용자 및 auth 조회 성공:', user.email);
+
+        const isMatch = await user.auth.comparePassword(currentPassword);
+        if (!isMatch) {
+            console.warn('[ChangePassword] 현재 비밀번호 불일치');
+            return { success: false, message: '현재 비밀번호가 일치하지 않습니다.' };
+        }
+
+        const isSame = await user.auth.comparePassword(newPassword);
+        if (isSame) {
+            console.warn('[ChangePassword] 새 비밀번호가 기존과 동일함');
+            return { success: false, message: '새 비밀번호가 기존 비밀번호와 동일합니다.' };
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        user.auth.password = hashed;
+
+        await this.authRepository.save(user.auth);
+        //console.log('[ChangePassword] 비밀번호 변경 성공:', user.email);
+
+        return { success: true, message: '비밀번호가 성공적으로 변경되었습니다.' };
+    }
 }

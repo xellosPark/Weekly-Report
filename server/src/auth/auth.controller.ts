@@ -112,4 +112,19 @@ export class AuthController {
         return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
     }
 
+    // 🔐 비밀번호 변경
+    @Post('change-password')
+    @UseGuards(JwtAuthGuard)
+    async changePassword(@Request() req, @Body() body: { currentPassword: string; newPassword: string }) {
+        const { currentPassword, newPassword } = body;
+
+        const result = await this.authService.changePassword(req.user.id, currentPassword, newPassword);
+
+        if (!result.success) {
+            return { success: false, message: result.message };
+        }
+
+        return { success: true, message: '비밀번호가 성공적으로 변경되었습니다.' };
+    }
+
 }

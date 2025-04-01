@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./Header.module.css"; // CSS 모듈을 import
 import { BsRss } from "react-icons/bs";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { KeyRound } from "lucide-react"; // 열쇠 아이콘 import
+import ChangePassword from "../../pages/LoginPage/ChangePassword";
 
 interface HeaderProps {
   timeRemaining: string;
@@ -12,15 +13,15 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
   const { isAuth, userId, userTeam, userName } = useAuth();
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
   const onHome = () => {
     navigate("/");
   };
 
   const onChangePassword = () => {
-    // 여기에 비밀번호 변경 모달 띄우기 등 로직 작성
     console.log("비밀번호 변경 클릭됨!");
-    // navigate("/change-password"); 또는 모달 열기 등
+    setShowChangePassword(true); // 모달 열기
   };
 
   return (
@@ -68,6 +69,21 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
         >
           <KeyRound size={20} color="white" />
         </button>
+        {/* 💬 비밀번호 변경 모달 */}
+        {showChangePassword && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContainer}>
+              <ChangePassword onClose={() => setShowChangePassword(false)} />
+              <button
+                className={styles.modalCloseButton}
+                onClick={() => setShowChangePassword(false)}
+                aria-label="모달 닫기"
+              >
+                ✖
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
