@@ -3,6 +3,7 @@ import styles from "./Header.module.css"; // CSS 모듈을 import
 import { BsRss } from "react-icons/bs";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { KeyRound } from "lucide-react"; // 열쇠 아이콘 import
 
 interface HeaderProps {
   timeRemaining: string;
@@ -13,13 +14,17 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
   const { isAuth, userId, userTeam, userName } = useAuth();
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
   const onHome = () => {
-    
     navigate("/");
-  }
+  };
+
+  const onChangePassword = () => {
+    // 여기에 비밀번호 변경 모달 띄우기 등 로직 작성
+    console.log("비밀번호 변경 클릭됨!");
+    // navigate("/change-password"); 또는 모달 열기 등
+  };
 
   return (
     <header className={styles.header}>
-
       <div className={styles.logoCon}>
         <div onClick={onHome}>
           <span className={styles.iconub}>U</span>
@@ -55,6 +60,13 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
         </label>
         <button className={styles["logout-button"]} onClick={onLogout}>
           로그아웃
+        </button>
+        <button
+          className={styles["logout-button"]}
+          onClick={onChangePassword}
+          aria-label="비밀번호 변경"
+        >
+          <KeyRound size={20} color="white" />
         </button>
       </div>
     </header>

@@ -47,7 +47,7 @@
 
 /* 저장 버튼 */
 .saveButton {
-  background: #5091CD; /* 투명 배경 */
+  background: #5091cd; /* 투명 배경 */
   color: white;
   font-size: 1em;
   padding: 0.5em 1em;
@@ -76,23 +76,45 @@
 }
 
 .copyButton {
-  background: #66A593; /* 투명 배경 */
+  background: #66a593; /* 투명 배경 */
   color: white;
   font-size: 0.9em;
   padding: 0.5em 1em;
-  border: 1px solid #66A593; /* 외각 테두리 */
+  border: 1px solid #66a593; /* 외각 테두리 */
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s ease;
   margin-right: 1em;
 }
 
+/* 버튼 호버 효과 */
+.copyButton:hover {
+  background: #8cc4b4;
+}
+
+.excelButton {
+  background: #ee9127; /* 투명 배경 */
+  color: white;
+  font-size: 0.9em;
+  padding: 0.5em 1em;
+  border: 1px solid #fdf5ab; /* 외각 테두리 */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-right: 1em;
+}
+
+/* 버튼 호버 효과 */
+.excelButton:hover {
+  background: #fdf5ab;
+}
+
 .rowAddButton {
-  background:  #CCCCFF; /* 투명 배경 */
+  background: #ccccff; /* 투명 배경 */
   color: white;
   font-size: 1em;
   padding: 0.5em 1em;
-  border: 1px solid  #CCCCFF; /* 외각 테두리 */
+  border: 1px solid #ccccff; /* 외각 테두리 */
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s ease;
@@ -102,12 +124,6 @@
 /* 버튼 호버 효과 */
 .addButton:hover {
   background: #98fc8e;
-}
-
-
-/* 버튼 호버 효과 */
-.copyButton:hover {
-  background: #8cc4b4;
 }
 
 /* 버튼 호버 효과 */
@@ -396,7 +412,7 @@
   border-top: 3px solid #f59f00;
 }
 
-/* 정보보고 테이블 스타일 */ 
+/* 정보보고 테이블 스타일 */
 .infoTable {
   width: 100%;
   border-collapse: collapse;
@@ -459,20 +475,31 @@
 /* 반응형 테이블 (작은 화면에서 스크롤 가능) */
 
 @media (max-height: 800px) {
-  .section1 { max-height: 80%; }
-  .reportTableContainer { max-height: 85%; }
+  .section1 {
+    max-height: 80%;
+  }
+  .reportTableContainer {
+    max-height: 85%;
+  }
 }
 
 @media (min-height: 801px) and (max-height: 1200px) {
-  .section1 { max-height: 85%; }
-  .reportTableContainer { max-height: 87%; }
+  .section1 {
+    max-height: 85%;
+  }
+  .reportTableContainer {
+    max-height: 87%;
+  }
 }
 
 @media (min-height: 1201px) {
-  .section1 { max-height: 90%; }
-  .reportTableContainer { max-height: 90%; }
+  .section1 {
+    max-height: 90%;
+  }
+  .reportTableContainer {
+    max-height: 90%;
+  }
 }
-
 
 .sectionTest {
   position: relative;

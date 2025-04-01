@@ -11,6 +11,8 @@ import api from "../../utils/api";
 import { EditBoard, LoadBoard, SaveBoard } from "../../utils/boardApi";
 import { useAuth } from "../../context/AuthContext";
 // import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const MainPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -58,10 +60,19 @@ const MainPage: React.FC = () => {
     { label: "팀장", value: 10 },
   ];
 
+  const Roles = Object.freeze({
+    SUPER_ADMIN: "SUPER_ADMIN",
+    MID_MANAGER: "MID_MANAGER", // 중간 관리자
+    ADMIN: "ADMIN",
+    USER: "USER",
+    READ_ONLY: "READ_ONLY", // 읽기 전용 (최소 권한)
+  });
+
   const [selectedPart, setSelectedPart] = useState<{
     label: string;
     value: number;
   }>(parts[0]);
+
   // ✅ useState의 초기 타입을 명시적으로 지정
   const [filteredParts, setFilteredParts] = useState<
     { label: string; value: number }[]
@@ -273,7 +284,7 @@ const MainPage: React.FC = () => {
 
     //🔹 team 값에 따라 필터링
     if (userTeam === 10) {
-      //console.log('진행', team);
+      console.log("진행", userTeam);
       setFilteredParts(parts); // 모든 파트 표시
       setSelectedPart(parts[parts.length - 1]);
     } else if (userTeam === 0) {
@@ -303,14 +314,14 @@ const MainPage: React.FC = () => {
   }, [selectedWeek]);
 
   useEffect(() => {
-    if (!isBoardLoaded || !currentWeek) return;
-    
+    if (!isBoardLoaded || !currentWeek || !data || !selectedPart) return;
+
     const loadData = data.filter(
-      (data) => 
+      (data) =>
         data.title === getMonthWeekLabel(currentWeek) &&
         data.part === selectedPart.value
     );
-    
+
     if (loadData.length === 0) {
       setReportData([
         {
@@ -372,6 +383,7 @@ const MainPage: React.FC = () => {
     if (!isConfirmed) {
       return;
     }
+
     const board = {
       title: currentWeek !== null ? getMonthWeekLabel(currentWeek) : "",
       category: reportData.map((obj) => obj.category).join("^^"),
@@ -423,28 +435,32 @@ const MainPage: React.FC = () => {
   };
 
   const onCopyAndPaste = async () => {
-    if (currentWeek === 0)
-    return;
+    if (currentWeek === 0) return;
     //console.log('선택 주차', copiedWeek);
-    const isConfirmed = window.confirm("이전 주차의 내용으로 업데이트 하시겠습니까? 진행시 작성된 내용이 사라집니다.");
+    const isConfirmed = window.confirm(
+      "이전 주차의 내용으로 업데이트 하시겠습니까? 진행시 작성된 내용이 사라집니다."
+    );
 
     if (!isConfirmed) {
-      alert('취소되었습니다.');
+      alert("취소되었습니다.");
       return;
     }
 
     const title = getMonthWeekLabel(Number((currentWeek || 0) - 1));
-    const filterData = data.filter((data) => data.title === title && data.part === userTeam);
-    console.log('filterData', filterData, userTeam);
+    const filterData = data.filter(
+      (data) => data.title === title && data.part === userTeam
+    );
+    console.log("filterData", filterData, userTeam);
+
     if (recentWeeks[recentWeeks.length - 1] !== currentWeek) {
-      alert('이전 주차에는 붙여넣기가 안됩니다');
-      return;
-    }
-    if (filterData.length <= 0) {
-      alert('해당 주차의 데이터가 없습니다');
+      alert("이전 주차에는 붙여넣기가 안됩니다");
       return;
     }
 
+    if (filterData.length <= 0) {
+      alert("해당 주차의 데이터가 없습니다");
+      return;
+    }
     const transformedData = transData(filterData[0]);
 
     // 변환된 데이터를 setReportData에 저장
@@ -455,14 +471,83 @@ const MainPage: React.FC = () => {
     setMemoContent(filterData[0].memo);
 
     setSelectOriginalData(filterData[0]);
-  }
+  };
 
-  const transData = (loadData:Board) => {
+  const escapeExcelFormula = (value: string | number) => {
+    const strValue = String(value);
+    const specialPrefixes = ["=", "+", "-", "@"];
 
+    if (specialPrefixes.some((prefix) => strValue.startsWith(prefix))) {
+      return ` ${strValue}`; // 수식 방지용 공백 추가
+    }
+
+    return strValue;
+  };
+
+  const toPercentString = (value: string | number) => {
+    return `${escapeExcelFormula(value)}%`;
+  };
+
+  const onExportToExcel = () => {
+    const exportData = reportData.map((row) => ({
+      구분: escapeExcelFormula(row.category),
+      계획업무_다음주: escapeExcelFormula(row.weeklyPlan),
+      계획업무_이번주: escapeExcelFormula(row.prevPlan),
+      수행실적: escapeExcelFormula(row.prevResult),
+      완료예정일: escapeExcelFormula(row.completion),
+      달성율_금주: toPercentString(row.progress),
+      달성율_전체: toPercentString(row.allprogress),
+    }));
+
+    const worksheet = XLSX.utils.aoa_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(worksheet, [[`${currentWeek} 주간 보고서`]], {
+      origin: "A1",
+    });
+    XLSX.utils.sheet_add_aoa(worksheet, [[]], { origin: "A2" });
+
+    XLSX.utils.sheet_add_json(worksheet, exportData, {
+      origin: "A3",
+      skipHeader: false,
+    });
+
+    // 🔍 여기가 포인트!
+    const nextRow = exportData.length + 5; // 기존 +4 → 한 줄 더 띄워서 +5
+    XLSX.utils.sheet_add_aoa(worksheet, [["정보보고", "이슈", "메모"]], {
+      origin: `A${nextRow}`,
+    });
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        [
+          escapeExcelFormula(infoContent),
+          escapeExcelFormula(issueContent),
+          escapeExcelFormula(memoContent),
+        ],
+      ],
+      { origin: `A${nextRow + 1}` }
+    );
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      `${currentWeek} 주간 보고서`
+    );
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(blob, `${currentWeek}_weekly_report.xlsx`);
+  };
+
+  const transData = (loadData: Board) => {
     // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환
-    const categories = loadData.category
-      .split("^^")
-      .map((item) => item.trim());
+    const categories = loadData.category.split("^^").map((item) => item.trim());
     const weeklyPlan = loadData.currentWeekPlan
       .split("^^")
       .map((item) => item.trim());
@@ -494,7 +579,7 @@ const MainPage: React.FC = () => {
     }));
 
     return transformedData;
-  }
+  };
 
   const textareaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>(
     {}
@@ -556,7 +641,6 @@ const MainPage: React.FC = () => {
                 </option>
               ))}
             </select>
-          
           </div>
 
           {/* 제목을 가운데 정렬 */}
@@ -566,9 +650,9 @@ const MainPage: React.FC = () => {
           </h3>
 
           <div>
-            {userTeam === selectedPart.value && 
-            <>
-            {/* <select
+            {userTeam === selectedPart.value && (
+              <>
+                {/* <select
               className={styles.dropdown}
               value={copiedWeek || ""}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
@@ -582,17 +666,23 @@ const MainPage: React.FC = () => {
               ))}
             </select> 
             <button className={styles.addButton} onClick={onCopyAndPaste}>주차 붙여 넣기</button> */}
-            </>
-            }
+              </>
+            )}
           </div>
 
-          <div style={{display: 'flex'}}>
+          <div style={{ display: "flex" }}>
             {/* 행 추가 버튼 */}
             {/* <button className={styles.addButton} onClick={handleNewSheet}>
               New
             </button> */}
             {/* 행 추가 버튼 */}
-            <button className={styles.copyButton} onClick={onCopyAndPaste}>전 주차 Copy</button>
+            <button className={styles.excelButton} onClick={onExportToExcel}>
+              엑셀 저장
+            </button>
+
+            <button className={styles.copyButton} onClick={onCopyAndPaste}>
+              전 주차 Copy
+            </button>
             {selectedPart.value === userTeam && (
               <button className={styles.rowAddButton} onClick={handleAddRow}>
                 Row Add
@@ -655,22 +745,56 @@ const MainPage: React.FC = () => {
             </thead>
             <tbody>
               {reportData.map((row, index) => {
-                
-                
-                const isCompleted = row.progress === "100" && row.allprogress === "100";
+                const isCompleted =
+                  row.progress === "100" && row.allprogress === "100";
                 return (
-                <tr key={index} style={{ backgroundColor: isCompleted ? "#bfeeb3" : "transparent" }}>
-                  {Object.keys(row).map((field, colIndex) => (
-                    <td
-                      key={field}
-                      className={styles.mainscrollableCell}
-                      contentEditable={false}
-                    >
-                      {field === "progress" ||
-                      field === "allprogress" ||
-                      field === "completion" ? (
-                        <div style={{ display: "flex" }}>
-                          <input
+                  <tr
+                    key={index}
+                    style={{
+                      backgroundColor: isCompleted ? "#bfeeb3" : "transparent",
+                    }}
+                  >
+                    {Object.keys(row).map((field, colIndex) => (
+                      <td
+                        key={field}
+                        className={styles.mainscrollableCell}
+                        contentEditable={false}
+                      >
+                        {field === "progress" ||
+                        field === "allprogress" ||
+                        field === "completion" ? (
+                          <div style={{ display: "flex" }}>
+                            <input
+                              style={{
+                                color: "black",
+                                // cursor:
+                                //   recentWeeks[recentWeeks.length - 1] !==
+                                //     currentWeek || userTeam !== selectedPart.value
+                                //     ? "not-allowed"
+                                //     : "text",
+                              }}
+                              type="text"
+                              className={styles.inputField}
+                              value={row[field as keyof typeof row]}
+                              onChange={(e) =>
+                                handleMainChange(index, field, e.target.value)
+                              }
+                              // disabled={
+                              //   recentWeeks[recentWeeks.length - 1] !==
+                              //     currentWeek || userTeam !== selectedPart.value
+                              // }
+                            />
+                            {(field === "progress" ||
+                              field === "allprogress") && (
+                              <span style={{ marginRight: "2px" }}>%</span>
+                            )}
+                          </div>
+                        ) : (
+                          <textarea
+                            ref={(el) => {
+                              textareaRefs.current[`${index}-${field}`] = el;
+                              if (el) adjustTextareaHeight(el);
+                            }}
                             style={{
                               color: "black",
                               // cursor:
@@ -678,65 +802,37 @@ const MainPage: React.FC = () => {
                               //     currentWeek || userTeam !== selectedPart.value
                               //     ? "not-allowed"
                               //     : "text",
+                              overflowY: "auto", // ✅ 스크롤바 자동 활성화
+                              maxHeight: "200px", // ✅ 최대 높이 제한 (200px)
+                              resize: "none", // 사용자가 크기 조절하지 못하도록 설정
                             }}
-                            type="text"
-                            className={styles.inputField}
-                            value={row[field as keyof typeof row]}
-                            onChange={(e) =>
-                              handleMainChange(index, field, e.target.value)
+                            className={
+                              colIndex === 0
+                                ? styles.FirstTextArea
+                                : styles.MaintextArea
                             }
+                            value={row[field as keyof typeof row]}
+                            onChange={(e) => {
+                              handleMainChange(index, field, e.target.value);
+                              adjustTextareaHeight(e.target);
+                            }}
+                            onInput={(e) =>
+                              adjustTextareaHeight(
+                                e.target as HTMLTextAreaElement
+                              )
+                            }
+                            // 입력 시 크기 조절
                             // disabled={
                             //   recentWeeks[recentWeeks.length - 1] !==
                             //     currentWeek || userTeam !== selectedPart.value
                             // }
                           />
-                          {(field === "progress" ||
-                            field === "allprogress") && (
-                            <span style={{ marginRight: "2px" }}>%</span>
-                          )}
-                        </div>
-                      ) : (
-                        <textarea
-                          ref={(el) => {
-                            textareaRefs.current[`${index}-${field}`] = el;
-                            if (el) adjustTextareaHeight(el);
-                          }}
-                          style={{
-                            color: "black",
-                            // cursor:
-                            //   recentWeeks[recentWeeks.length - 1] !==
-                            //     currentWeek || userTeam !== selectedPart.value
-                            //     ? "not-allowed"
-                            //     : "text",
-                            overflowY: "auto", // ✅ 스크롤바 자동 활성화
-                            maxHeight: "200px", // ✅ 최대 높이 제한 (200px)
-                            resize: "none", // 사용자가 크기 조절하지 못하도록 설정
-                          }}
-                          className={
-                            colIndex === 0
-                              ? styles.FirstTextArea
-                              : styles.MaintextArea
-                          }
-                          value={row[field as keyof typeof row]}
-                          onChange={(e) => {
-                            handleMainChange(index, field, e.target.value);
-                            adjustTextareaHeight(e.target);
-                          }}
-                          onInput={(e) =>
-                            adjustTextareaHeight(
-                              e.target as HTMLTextAreaElement
-                            )
-                          } // 입력 시 크기 조절
-                          // disabled={
-                          //   recentWeeks[recentWeeks.length - 1] !==
-                          //     currentWeek || userTeam !== selectedPart.value
-                          // }
-                        />
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              )})}
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {/* 우클릭 메뉴 */}

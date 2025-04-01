@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   height: 98.7vh;
-  width: 99.3vw;
+  width: 98.7vw;
   background-image: url("../../logos/LG_Electronics_Gradient_01_RGB.jpg");
   background-size: cover;
   background-position: center;
@@ -97,4 +97,24 @@
 
 .findLinks a:hover {
   text-decoration: underline;
+}
+
+/* ✅ 비밀번호 입력 필드 + 보기 버튼용 래퍼 */
+.passwordInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ✅ 비밀번호 보기 토글 버튼 */
+.toggleButton {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #666;
 }

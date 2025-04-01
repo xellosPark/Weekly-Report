@@ -30,3 +30,7 @@ export default classes;
 }
 
 cp -r ./client-app/build ./server/public
+
+npm install xlsx file-saver
+npm install xlsx-style
+npm install lucide-react

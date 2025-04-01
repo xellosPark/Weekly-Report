@@ -5,6 +5,7 @@ import api from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Login } from "../../utils/userApi";
+import { Eye, EyeOff } from "lucide-react";
 
 // 서버 응답 타입 정의
 interface LoginResponse {
@@ -31,6 +32,7 @@ interface User {
 export default function LoginPage() {
   const [id, setId] = useState<string>("@ubisam.com");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [testMessage, setTestMessage] = useState<string | null>(null);
   const { login, userUpdateData } = useAuth();
@@ -81,7 +83,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleKeyDown = (event: { key: string; }) => {
+  const handleKeyDown = (event: { key: string }) => {
     if (event.key === "Enter") {
       handleLogin();
     }
@@ -117,18 +119,30 @@ export default function LoginPage() {
             autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
           />
 
-          {/* ✅ 비밀번호 입력 필드 */}
-          <input
-            className={styles.inputField}
-            type="password"
-            placeholder="비밀번호를 입력해 주세요"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value.trim())
-            } /* ✅ 공백 방지 */
-            onKeyDown={handleKeyDown}
-            autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
-          />
+          {/* ✅ 비밀번호 입력 필드 + 보기 버튼 */}
+          <div className={styles.passwordInputWrapper}>
+            <input
+              className={styles.inputField}
+              type={showPassword ? "text" : "password"}
+              placeholder="비밀번호를 입력해 주세요"
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value.trim())
+              } /* ✅ 공백 방지 */
+              onKeyDown={handleKeyDown}
+              autoComplete="off" /* ✅ 자동완성 차단하여 보안 경고 방지 */
+            />
+
+            {/* 👁️ 보기/숨기기 버튼 */}
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className={styles.toggleButton}
+              aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
 
           {/* ✅ 로그인 버튼 */}
           <button className={styles.button} onClick={handleLogin}>

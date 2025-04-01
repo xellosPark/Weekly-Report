@@ -76,31 +76,44 @@
   font-weight: bold;
   vertical-align: bottom;
   color: #f2f2f2;
-  
 }
 
 .iconubi {
-font-size: 1.3rem;
-font-weight: bold;
-vertical-align: bottom;
-color: #f2f2f2;
+  font-size: 1.3rem;
+  font-weight: bold;
+  vertical-align: bottom;
+  color: #f2f2f2;
 }
 
 .icons {
-font-size: 1.5rem;
-font-weight: bold;
-color: #2F97F8;
-vertical-align: bottom;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2f97f8;
+  vertical-align: bottom;
 }
 .iconsam {
-font-size: 1.4rem;
-font-weight: bold;
-color: #2F97F8;
-vertical-align: bottom;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #2f97f8;
+  vertical-align: bottom;
 }
 
 .navbarLogoIcon {
-background-color: #2F97F8;
-color:white;
-margin-bottom: 0.6rem;
+  background-color: #2f97f8;
+  color: white;
+  margin-bottom: 0.6rem;
+}
+
+.logout-button {
+  background: transparent; /* ✅ 배경 제거 */
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-button:hover {
+  opacity: 0.8;
 }
