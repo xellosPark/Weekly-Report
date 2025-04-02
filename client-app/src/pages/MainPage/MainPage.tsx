@@ -10,12 +10,22 @@ import axios from "axios";
 import api from "../../utils/api";
 import { EditBoard, LoadBoard, SaveBoard } from "../../utils/boardApi";
 import { useAuth } from "../../context/AuthContext";
+import { getUsers } from "../../utils/userApi";
 // import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 const MainPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  type User = {
+    id: number;
+    // username: string;
+    // email: string;
+    // rank: number;
+    // site: number;
+    // team: number;
+  }
 
   interface Board {
     id: number;
@@ -31,11 +41,13 @@ const MainPage: React.FC = () => {
     report: string;
     issue: string;
     memo: string;
+    user: User;
   }
 
   interface ContextMenuState {
     mouseX: number;
     mouseY: number;
+    rowIndex: number;
   }
 
   const [weeks, setWeeks] = useState<number[]>(
@@ -54,10 +66,20 @@ const MainPage: React.FC = () => {
 
   // 파트 선택 드롭다운 데이터
   //const parts = ["자동화파트", "로봇파트", "팀장"];
-  const parts: { label: string; value: number }[] = [
-    { label: "자동화파트", value: 1 },
-    { label: "로봇파트", value: 2 },
-    { label: "팀장", value: 10 },
+  const parts: { label: string; value: number, site: number}[] = [
+    { label: "로봇자동화사업팀", value: 1, site:2 },
+    { label: "로봇파트", value: 2, site:1 },
+    { label: "경영지원팀", value: 3, site:1 },
+    { label: "프리엑스", value: 4, site:1 },
+    { label: "팀장", value: 10, site:1 },
+  ];
+
+  const authority: { rank: number; issue: boolean; report: boolean; editReport: boolean; editIssue: boolean;}[] = [
+    { rank: 1, report: true, issue: false, editReport: false, editIssue: false },
+    { rank: 2, report: false, issue: false, editReport: true, editIssue: false },
+    { rank: 3, report: false, issue: false, editReport: true, editIssue: true },
+    { rank: 4, report: false, issue: false, editReport: false, editIssue: true },
+    { rank: 5, report: false, issue: false, editReport: false, editIssue: true },
   ];
 
   const Roles = Object.freeze({
@@ -87,10 +109,23 @@ const MainPage: React.FC = () => {
   const [data, setData] = useState<Board[]>([]);
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
-  const { isAuth, userId, userTeam, logout } = useAuth();
+  const { isAuth, userId, userTeam, userRank, userSite, logout } = useAuth();
   // 우클릭 메뉴 상태
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
+  const [rankAuthority, setRankAuthority] = useState<
+    {rank: number, report: boolean, issue: boolean, editReport: boolean, editIssue: boolean} | null
+  >(null);
+
+  const [users, setUsers] = useState<
+  { label: string; value: number, name: string, rank: number, id: number }[]
+  >([]);//<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<
+    { id: number; name: string; label: string; rank: number; value: number }[]
+  >([]);
+  const [selectUser, setSelectUser] = useState<
+  { label: string; value: number, name: string, rank: number, id: number } | null
+  >(null);
   const [error, fetchDataAction, isPending] = useActionState<
     Error | null,
     void
@@ -98,7 +133,10 @@ const MainPage: React.FC = () => {
     //console.log('load board', userId, userTeam);
 
     try {
-      const result = await LoadBoard(userId, userTeam);
+      await LoadUsers();
+      const result = await LoadBoard(userId, userRank);
+      //console.log('LoadBoard', result);
+      
       setData(result); // API 데이터를 직접 useState에 저장
       setIsBoardLoaded(true);
     } catch (error) {
@@ -108,22 +146,22 @@ const MainPage: React.FC = () => {
   }, null);
 
   // 우클릭 이벤트 핸들러
-  const handleContextMenu = (event: React.MouseEvent<HTMLTableElement>) => {
-    event.preventDefault(); // 기본 우클릭 메뉴 방지
-    const target = event.target as HTMLElement;
+  // const handleContextMenu = (event: React.MouseEvent<HTMLTableElement>) => {
+  //   event.preventDefault(); // 기본 우클릭 메뉴 방지
+  //   const target = event.target as HTMLElement;
 
-    // 우클릭한 요소가 <thead> 내부라면 컨텍스트 메뉴 표시 안 함
-    if (target.closest("thead")) {
-      setContextMenu(null);
-      return;
-    }
+  //   // 우클릭한 요소가 <thead> 내부라면 컨텍스트 메뉴 표시 안 함
+  //   if (target.closest("thead")) {
+  //     setContextMenu(null);
+  //     return;
+  //   }
 
-    // 우클릭 위치 저장 후 삭제 버튼 표시
-    setContextMenu({
-      mouseX: event.clientX - 2,
-      mouseY: event.clientY - 4,
-    });
-  };
+  //   // 우클릭 위치 저장 후 삭제 버튼 표시
+  //   setContextMenu({
+  //     mouseX: event.clientX - 2,
+  //     mouseY: event.clientY - 4,
+  //   });
+  // };
 
   // 마지막 행 삭제 함수
   const handleDeleteLastRow = () => {
@@ -158,6 +196,41 @@ const MainPage: React.FC = () => {
     setReportData(reportData.slice(0, -1)); // 마지막 행 삭제
     setContextMenu(null); // 메뉴 닫기
   };
+
+  const handleDeleteRow = () => {
+    if (!contextMenu) return;
+  
+    const index = contextMenu.rowIndex;
+  
+    if (reportData.length === 1) return;
+  
+    const defaultRow = {
+      category: "",
+      weeklyPlan: "",
+      prevPlan: "",
+      prevResult: "",
+      completion: "202 . . ",
+      progress: "0",
+      allprogress: "0",
+    };
+  
+    const targetRow = reportData[index];
+    const hasChanges = JSON.stringify(targetRow) !== JSON.stringify(defaultRow);
+  
+    if (hasChanges) {
+      const confirmDelete = window.confirm("작성된 내용이 있습니다. 지우시겠습니까?");
+      if (!confirmDelete) {
+        setContextMenu(null);
+        return;
+      }
+    }
+  
+    const newData = [...reportData];
+    newData.splice(index, 1);
+    setReportData(newData);
+    setContextMenu(null);
+  };
+  
 
   // 🔹 마우스 클릭 시 메뉴 닫기 (우클릭 메뉴 외 다른 곳 클릭 시 숨김)
   const handleCloseContextMenu = () => {
@@ -212,10 +285,10 @@ const MainPage: React.FC = () => {
   const getWeekNumber = (date: Date): number => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
 
-    // 첫 번째 월요일 찾기
+    // 첫 번째 화요일 찾기
     const firstMonday = new Date(firstDayOfYear);
     firstMonday.setDate(
-      firstDayOfYear.getDate() + ((1 - firstDayOfYear.getDay() + 7) % 7)
+      firstDayOfYear.getDate() + ((2 - firstDayOfYear.getDay() + 7) % 7)
     );
 
     // 현재 날짜와 첫 번째 월요일 사이의 차이를 밀리초 단위로 계산
@@ -283,14 +356,23 @@ const MainPage: React.FC = () => {
     checkNextWeekAvailable();
 
     //🔹 team 값에 따라 필터링
-    if (userTeam === 10) {
-      console.log("진행", userTeam);
+    //if (userTeam === 10) {
+    const rank = authority.filter((rank) => rank.rank === userRank);
+      
+    setRankAuthority(rank[0]);
+    if (rank[0].rank === 1) {
+      const filterPart = parts.filter((part) => part.value !== 4);
+      setFilteredParts(filterPart); // 모든 파트 표시
+      setSelectedPart(filterPart[filterPart.length - 1]);
+    } else if (rank[0].rank === 2) {
       setFilteredParts(parts); // 모든 파트 표시
       setSelectedPart(parts[parts.length - 1]);
-    } else if (userTeam === 0) {
-      return;
+
+    } else if (rank[0].rank === 3) {
+      const filterPart = parts.filter((part) => part.value === 10 || part.value === 3);
+      setFilteredParts(filterPart); // 모든 파트 표시
+      setSelectedPart(filterPart[0]);
     } else {
-      //console.log('진행', team);
       const filtered = parts.filter((part) => part.value === userTeam);
       //console.log('filtered', filtered);
 
@@ -314,12 +396,13 @@ const MainPage: React.FC = () => {
   }, [selectedWeek]);
 
   useEffect(() => {
-    if (!isBoardLoaded || !currentWeek || !data || !selectedPart) return;
-
+    if (!isBoardLoaded || !currentWeek || !data || !selectedPart || !selectUser) return;
+    
     const loadData = data.filter(
       (data) =>
         data.title === getMonthWeekLabel(currentWeek) &&
-        data.part === selectedPart.value
+        data.part === selectedPart?.value &&
+        data.user.id === selectUser.id
     );
 
     if (loadData.length === 0) {
@@ -353,7 +436,38 @@ const MainPage: React.FC = () => {
 
     setSelectOriginalData(loadData[0]);
     setIsEdit(false);
-  }, [currentWeek, isBoardLoaded, selectedPart]);
+  }, [currentWeek, isBoardLoaded, selectedPart, selectUser]);
+
+  useEffect(() => {
+    if (!selectedPart) return;
+    const filtered = users.filter(user => user.label === selectedPart.label);
+    
+    setFilteredUsers(filtered);
+    setSelectUser(filtered[0]); // 선택 초기화 (선택사항)
+  }, [isAuth, selectedPart, users]);
+
+  const LoadUsers = async () => {
+    const userData = await getUsers();
+    //console.log('userData', userData.data);
+    
+    const mappedUsers = userData.data.map((user: { team: number; id: number; site: number; username:string; rank: number;  }) => {
+      
+      const teamInfo = parts.find(team => team.value === user.team);
+      //console.log('teamInfo', teamInfo);
+      
+
+      return {
+        id: user.id,
+        name: user.username,
+        value: user.site,
+        rank: user.rank,
+        label: teamInfo?.label ?? '팀 없음', // 매칭 실패 시 대비
+      };
+    });
+    
+    setUsers(mappedUsers);
+    setSelectUser(mappedUsers[0]);
+  }
 
   // 정보보고, 이슈, 메모 입력 변경 핸들러
   const handleInputChange = (
@@ -377,7 +491,6 @@ const MainPage: React.FC = () => {
   };
 
   const OnSave = async () => {
-    console.log("OnSave reportData", reportData);
     const isConfirmed = window.confirm("저장하시겠습니까?");
 
     if (!isConfirmed) {
@@ -398,12 +511,24 @@ const MainPage: React.FC = () => {
       memo: memoContent,
     };
 
-    console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
+    //console.log("API 요청 데이터:", JSON.stringify(board, null, 2));
 
-    const response = await SaveBoard(board, userId);
+    //대표님이나 팀장님이 내용을 수정할때 해당 게시물의 유저는 작성한 사람이 되어야하므로 이렇게 추가함
+    let user_id = 0;
+    if (rankAuthority?.rank === 1)
+      user_id = selectUser?.id ?? 0;
+    else if (rankAuthority?.rank === 2 && selectedPart.label === "팀장") {
+      user_id = userId;
+    }
+    else {
+      user_id = selectUser?.id ?? userId;
+    }
+    
+    const response = await SaveBoard(board, user_id);
     alert(response);
 
-    const result = await LoadBoard(userId, userTeam);
+    //const result = await LoadBoard(userId, userTeam);
+    const result = await LoadBoard(userId, userRank);
     setData(result); // API 데이터를 직접 useState에 저장
     setIsBoardLoaded(true);
   };
@@ -448,7 +573,7 @@ const MainPage: React.FC = () => {
 
     const title = getMonthWeekLabel(Number((currentWeek || 0) - 1));
     const filterData = data.filter(
-      (data) => data.title === title && data.part === userTeam
+      (data) => data.title === title && data.part === userTeam && data.user.id === selectUser?.id
     );
     console.log("filterData", filterData, userTeam);
 
@@ -600,6 +725,34 @@ const MainPage: React.FC = () => {
     });
   }, [reportData]); // reportData 변경 시 실행
 
+  const GetRankAuthorityReport = () => {
+    if (userRank === 1) {
+      return rankAuthority?.report
+    } else if (userRank === 2) {
+      return rankAuthority?.report
+    } else if (userRank === 3 ) {
+      if (selectedPart.value === userTeam)
+        return rankAuthority?.report
+      else return rankAuthority?.editReport
+    } else {
+      return rankAuthority?.report
+    }
+  }
+
+  const GetRankAuthorityIssue = () => {
+    if (userRank === 1) {
+      return rankAuthority?.editIssue
+    } else if (userRank === 2) {
+      return rankAuthority?.issue
+    } else if (userRank === 3 ) {
+      if (selectedPart.value === userTeam)
+        return rankAuthority?.issue
+      else return rankAuthority?.editIssue
+    } else {
+      return rankAuthority?.issue
+    }
+  }
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.section1}>
@@ -628,6 +781,34 @@ const MainPage: React.FC = () => {
               ))}
             </select>
 
+              {
+              	// 유저명 사용 안함
+                //filteredUsers.length > 0 && (
+                false && (
+                  <select defaultValue=""
+                    onChange={(e) => {
+                      const selectedValue = e.target.value; // string -> number 변환
+                      //const selected = parts.find(
+                      //  (part) => part.value === selectedValue
+                      const userSelected = users.find(
+                        (user) => user.name === selectedValue
+                      );
+                      if (userSelected) {
+                        setSelectUser(userSelected);
+                      }
+                    }}
+                  >
+                    {
+                      filteredUsers.map(user => (
+                        <option key={user.id} value={user.name}>
+                          {user.name}
+                        </option>
+                      ))
+                    }
+                  </select>
+                )
+              }
+
             <select
               className={styles.dropdown}
               value={selectedWeek || ""}
@@ -650,7 +831,8 @@ const MainPage: React.FC = () => {
           </h3>
 
           <div>
-            {userTeam === selectedPart.value && (
+            {/*{userTeam === selectedPart.value && ( */}
+            { userTeam === selectedPart?.value && 
               <>
                 {/* <select
               className={styles.dropdown}
@@ -667,7 +849,7 @@ const MainPage: React.FC = () => {
             </select> 
             <button className={styles.addButton} onClick={onCopyAndPaste}>주차 붙여 넣기</button> */}
               </>
-            )}
+            }
           </div>
 
           <div style={{ display: "flex" }}>
@@ -680,17 +862,19 @@ const MainPage: React.FC = () => {
               엑셀 저장
             </button>
 
+            {selectedPart?.value === userTeam && (
             <button className={styles.copyButton} onClick={onCopyAndPaste}>
               전 주차 Copy
             </button>
-            {selectedPart.value === userTeam && (
+            )}
+            {selectedPart?.value === userTeam && (
               <button className={styles.rowAddButton} onClick={handleAddRow}>
                 Row Add
               </button>
             )}
 
             {/* 저장 버튼 */}
-            {selectedPart.value === userTeam && (
+            {(selectedPart?.value === userTeam || userRank === 1 || userRank === 2 ) && (
               <button className={styles.saveButton} onClick={OnSave}>
                 Save
               </button>
@@ -713,7 +897,7 @@ const MainPage: React.FC = () => {
         <div className={styles.reportTableContainer}>
           <table
             className={styles.reportTable}
-            onContextMenu={handleContextMenu} // 테이블에서 우클릭 감지
+            //onContextMenu={handleContextMenu} // 테이블에서 우클릭 감지
             style={{ border: "1px solid black", width: "100%" }}
           >
             <thead>
@@ -747,11 +931,28 @@ const MainPage: React.FC = () => {
               {reportData.map((row, index) => {
                 const isCompleted =
                   row.progress === "100" && row.allprogress === "100";
+                  const isContextSelected = contextMenu?.rowIndex === index;
                 return (
                   <tr
                     key={index}
                     style={{
-                      backgroundColor: isCompleted ? "#bfeeb3" : "transparent",
+                      backgroundColor: isContextSelected
+                      ? "#fdd" // 👉 우클릭으로 선택된 행 색상
+                      : isCompleted
+                      ? "#bfeeb3" // 완료된 행 색상
+                      : "transparent",
+                    }}
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                  
+                      const target = event.target as HTMLElement;
+                      if (target.closest("thead")) return;
+                  
+                      setContextMenu({
+                        mouseX: event.clientX - 2,
+                        mouseY: event.clientY - 4,
+                        rowIndex: index, // 여기서 인덱스를 기억!
+                      });
                     }}
                   >
                     {Object.keys(row).map((field, colIndex) => (
@@ -779,10 +980,9 @@ const MainPage: React.FC = () => {
                               onChange={(e) =>
                                 handleMainChange(index, field, e.target.value)
                               }
-                              // disabled={
-                              //   recentWeeks[recentWeeks.length - 1] !==
-                              //     currentWeek || userTeam !== selectedPart.value
-                              // }
+                               disabled={
+                                GetRankAuthorityReport()
+                               }
                             />
                             {(field === "progress" ||
                               field === "allprogress") && (
@@ -822,10 +1022,9 @@ const MainPage: React.FC = () => {
                               )
                             }
                             // 입력 시 크기 조절
-                            // disabled={
-                            //   recentWeeks[recentWeeks.length - 1] !==
-                            //     currentWeek || userTeam !== selectedPart.value
-                            // }
+                            disabled={
+                              GetRankAuthorityReport()
+                            }
                           />
                         )}
                       </td>
@@ -849,9 +1048,9 @@ const MainPage: React.FC = () => {
                 boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
                 cursor: "pointer",
               }}
-              onClick={handleDeleteLastRow} // 삭제 버튼 클릭 시 마지막 행 삭제
+              onClick={handleDeleteRow} // 삭제 버튼 클릭 시 마지막 행 삭제
             >
-              마지막 행 삭제
+              행 삭제
             </div>
           )}
         </div>
@@ -878,10 +1077,9 @@ const MainPage: React.FC = () => {
                     //     ? "not-allowed"
                     //     : "text",
                   }}
-                  // disabled={
-                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                  //   userTeam !== selectedPart.value
-                  // }
+                  disabled={
+                    GetRankAuthorityIssue()
+                  }
                 />
               </td>
               <th className={styles.issueHeader}>이슈</th>
@@ -898,10 +1096,9 @@ const MainPage: React.FC = () => {
                     //     ? "not-allowed"
                     //     : "text",
                   }}
-                  // disabled={
-                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                  //   userTeam !== selectedPart.value
-                  // }
+                  disabled={
+                    GetRankAuthorityIssue()
+                  }
                 />
               </td>
               <th className={styles.memoHeader}>메모</th>
@@ -918,10 +1115,9 @@ const MainPage: React.FC = () => {
                     //     ? "not-allowed"
                     //     : "text",
                   }}
-                  // disabled={
-                  //   recentWeeks[recentWeeks.length - 1] !== currentWeek ||
-                  //   userTeam !== selectedPart.value
-                  // }
+                  disabled={
+                    GetRankAuthorityIssue()
+                  }
                 />
               </td>
             </tr>

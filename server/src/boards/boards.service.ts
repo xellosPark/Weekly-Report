@@ -6,6 +6,7 @@ import { Board } from './boards.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/user.entity';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { UserRank } from 'src/@common/enums/global.enum';
 
 @Injectable()
 export class BoardsService {
@@ -70,27 +71,53 @@ export class BoardsService {
       throw new NotFoundException("User not found");
     } 
 
-    if (user.team !== 10) {
-      throw new NotFoundException("Admin User not found");
-    }
+    // if (user.team !== 10) {
+    //   throw new NotFoundException("Admin User not found");
+    // }
     //console.log('team', user.team);
     
-    const data = await this.boardRepository.find();
-    //console.log('data', data);
+    //const data = await this.boardRepository.find(); //유저 정보 포함 안됨
+    // const data = await this.boardRepository.find({
+    //   relations: ['user'], // 유저 정보 전부 포함
+    // });
+
+    const data = await this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoin('board.user', 'user') // join만 하고 select는 따로
+      .addSelect(['user.id'])       // user.id만 추가
+      .getMany();
+
+    //console.log('all data', data);
     
     return data;// await this.boardRepository.find();
   }
-  async loadBoard(userId: number, team: number): Promise<Board[]> {
+  async loadBoard(userId: number, rank: UserRank): Promise<Board[]> {
     const user = await this.userRepository.findOne({ where: { id: userId  } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    return await this.boardRepository.find({
-      where: { 
-        part: team,
-        user: { id: userId } }, // 🔗 userId에 해당하는 board 조회
-    });
+    if (rank === UserRank.Support) {
+      //console.log('여기다');
+      
+      return await this.boardRepository.find({
+        where: { 
+          //rank: rank,
+          user: { site: 1  } }, // 🔗 userId에 해당하는 board 조회
+      });
+    }
+
+    // return await this.boardRepository.find({
+    //   where: { 
+    //     //rank: rank,
+    //     user: { id: userId} }, // 🔗 userId에 해당하는 board 조회
+    // });
+
+    return await this.boardRepository
+    .createQueryBuilder('board')
+    .leftJoin('board.user', 'user') // join만 하고 select는 따로
+    .addSelect(['user.id'])       // user.id만 추가
+    .getMany();
   }
 
   async updateBoard(userId: number, boardDto: BoardDto): Promise<UpdateBoardDto> {
@@ -102,7 +129,7 @@ export class BoardsService {
     // });
     const board = await this.existBoard(boardDto, userId);
 
-    console.log('update board', board);
+    //console.log('update board', board);
     
 
     if (!board) {
@@ -117,7 +144,7 @@ export class BoardsService {
 
     // 3. 데이터 업데이트 및 저장
     Object.assign(board, boardDto);
-    this.boardRepository.save(board);
+    await this.boardRepository.save(board);
 
     console.log('Board Update 완료');
     return boardDto;
@@ -143,7 +170,7 @@ export class BoardsService {
 
     // 3. 데이터 업데이트 및 저장
     Object.assign(board, updateBoardDto);
-    this.boardRepository.save(board);
+    await this.boardRepository.save(board);
 
     console.log('Board Update 완료');
     return updateBoardDto;

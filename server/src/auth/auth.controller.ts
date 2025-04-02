@@ -14,9 +14,9 @@ export class AuthController {
 
     /**
      * 
-     * http://localhost:9801/auth/register
+     * http://localhost:9801/api/auth/register
      * {
-        "email": "test3@example.com",
+        "email": "test3@ubisam.com",
         "username": "test3",
         "password": "1q2w3e4r",
         "rank": 1,
@@ -125,6 +125,14 @@ export class AuthController {
         }
 
         return { success: true, message: '비밀번호가 성공적으로 변경되었습니다.' };
+    }
+    
+    @Get('test')
+    test(@Request() req: any, @Res() res: Response) {
+        
+        console.log('테스트');
+        
+         return "테스트 API";
     }
 
 }

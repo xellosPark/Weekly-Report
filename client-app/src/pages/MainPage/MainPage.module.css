@@ -2,7 +2,7 @@
 .mainContainer {
   display: flex;
   flex-direction: column;
-  margin-top: 40px;
+  margin-top: 45px;
   height: 95vh;
 }
 

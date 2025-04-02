@@ -7,7 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/user/user.entity';
-
+import { UserRank } from 'src/@common/enums/global.enum';
 
 @Injectable()
 export class AuthService {
@@ -21,12 +21,25 @@ export class AuthService {
 
     async register(registerDto: RegisterDto): Promise<User> {
         const { email, password, username, rank, team, site, admin, state, authMethod } = registerDto;
+        
+        // 문자열 → enum 값
+        let rankEnumValue: UserRank;
+
+        if (typeof rank === 'string') {
+        // 문자열이 enum 키("CEO")인 경우
+            rankEnumValue = UserRank[rank as keyof typeof UserRank];
+        } else if (typeof rank === 'number') {
+        // 숫자가 enum 값(1~5)인 경우
+            rankEnumValue = rank;
+        } else {
+            throw new Error('Invalid rank input');
+        }
 
         // Step 1: User 객체 생성
         const user = new User();
         user.email = email;
         user.username = username;
-        user.rank = rank;
+        user.rank = rankEnumValue;
         user.team = team;
         user.site = site;
         user.admin = admin;

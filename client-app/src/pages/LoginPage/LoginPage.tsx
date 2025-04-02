@@ -41,19 +41,21 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      console.log("로그인 요청 데이터:", { email: id, password });
+      //console.log("로그인 요청 데이터:", { email: id, password });
 
       const response = await Login(id, password);
 
       if (response.status === 201) {
-        console.log("서버 응답:", response.data);
+        //console.log("서버 응답:", response.data);
 
         const { accessToken, refreshToken, userData } = response.data;
-        console.log("Access Token:", accessToken);
-        console.log("Refresh Token:", refreshToken);
+        //console.log("Access Token:", accessToken);
+        //console.log("Refresh Token:", refreshToken);
 
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        //localStorage.setItem("accessToken", accessToken);
+        //localStorage.setItem("refreshToken", refreshToken);
+        sessionStorage.setItem("accessToken", accessToken);
+        sessionStorage.setItem("refreshToken", refreshToken);
 
         login(accessToken);
         userUpdateData(userData);

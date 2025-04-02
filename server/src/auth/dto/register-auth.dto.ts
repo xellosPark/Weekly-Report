@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsInt, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { UserRank } from 'src/@common/enums/global.enum';
 
 export class RegisterDto {
     /**
@@ -31,9 +32,9 @@ export class RegisterDto {
     @IsNotEmpty({ message: '이름은 필수 입력 항목입니다.' })
     username: string;
 
-    @IsInt()
-    @Transform(({ value }) => value ?? 0) // 값이 없으면 0으로 설정
-    rank: number;
+    @IsEnum(UserRank)
+    @Transform(({ value }) => value ?? UserRank.Employee) // 값이 없으면 0으로 설정
+    rank: UserRank;
 
     @IsInt()
     @Transform(({ value }) => value ?? 0) // 값이 없으면 0으로 설정

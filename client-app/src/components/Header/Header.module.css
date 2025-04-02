@@ -23,21 +23,8 @@
 }
 
 .time-remaining {
-  margin-right: 20px;
+  margin-right: 5px;
   font-weight: bold;
-}
-
-.logout-button {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.logout-button:hover {
-  background-color: #d32f2f;
 }
 
 .huserinfo {
@@ -105,17 +92,18 @@
 }
 
 .logout-button {
-  background: transparent; /* ✅ 배경 제거 */
+  background: #3e4550; /* ✅ 배경 제거 */
+  color: white;
+  font-weight: bold;
   border: none;
-  cursor: pointer;
   padding: 8px;
+  cursor: pointer;
+  border-radius: 5px;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .logout-button:hover {
-  opacity: 0.8;
+  background-color: #d32f2f;
 }
 
 /* ✅ 비밀번호 변경 모달 전체 배경 */

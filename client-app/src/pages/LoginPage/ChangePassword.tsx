@@ -31,6 +31,8 @@ export default function ChangePassword({ onClose }: ChangePasswordProps) {
 
     const res = await changePassword(currentPw, newPw);
 
+
+
     // // 🔍 응답 전체 출력
     // console.log("[ChangePassword] 응답 전체:", res);
 
@@ -47,6 +49,8 @@ export default function ChangePassword({ onClose }: ChangePasswordProps) {
       console.log("✅ onClose 실행 전");
       onClose();
       console.log("✅ onClose 실행 후");
+    } else if (res.data.success === false) {
+      alert(res.data.message);
     }
 
     // TODO: API 요청
@@ -76,7 +80,7 @@ export default function ChangePassword({ onClose }: ChangePasswordProps) {
             className={styles.eyeButton}
             onClick={toggleShowPassword}
           >
-            {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPw ? <EyeOff size={25} /> : <Eye size={25} />}
           </button>
         </div>
       </div>

@@ -1,9 +1,6 @@
 import axios from "axios";
 import api from "./api";
 
-const id = Number(localStorage.getItem("userId"));
-const team = Number(localStorage.getItem("userTeam"));
-
 interface User {
   id: number;
   email: string;
@@ -70,3 +67,20 @@ export const changePassword = async (currentPw: string, newPw: string) => {
     throw new Error("비밀번호 변경 요청 중 오류가 발생했습니다.");
   }
 };
+
+export const getUsers = async () => {
+  try {
+    const response = await api.get(
+      `http://localhost:9801/api/user`,
+    {
+      headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
+    }
+  );
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response; // 에러 응답을 그대로 반환
+    }
+    throw new Error("서버와의 연결에 문제가 발생했습니다.");
+  }
+}

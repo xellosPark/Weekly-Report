@@ -16,4 +16,23 @@ export class UserService {
           relations: ['auth'], // auth 데이터를 함께 불러옴
         });
       }
+
+      async getAllUsers(): Promise<User[]> {
+        
+        const data = await this.userRepository.find();
+
+        return data;
+      }
+
+      async getUsers(site: number): Promise<User[]> {
+
+        
+        const data = await this.userRepository.find({
+        where: { 
+          //rank: rank,
+          site: site }, // 🔗 userId에 해당하는 board 조회
+      });
+
+        return data;
+      }
 }
