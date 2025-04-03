@@ -70,7 +70,8 @@ const MainPage: React.FC = () => {
     { label: "로봇자동화사업팀", value: 1, site:2 },
     { label: "로봇파트", value: 2, site:1 },
     { label: "경영지원팀", value: 3, site:1 },
-    { label: "프리엑스", value: 4, site:1 },
+    { label: "경영지원팀2", value: 4, site:1 },
+    { label: "FX인원", value: 5, site:1 },
     { label: "팀장", value: 10, site:1 },
   ];
 
@@ -78,7 +79,7 @@ const MainPage: React.FC = () => {
     { rank: 1, report: true, issue: false, editReport: false, editIssue: false },
     { rank: 2, report: false, issue: false, editReport: true, editIssue: false },
     { rank: 3, report: false, issue: false, editReport: true, editIssue: true },
-    { rank: 4, report: false, issue: false, editReport: false, editIssue: true },
+    { rank: 4, report: false, issue: false, editReport: true, editIssue: true },
     { rank: 5, report: false, issue: false, editReport: false, editIssue: true },
   ];
 
@@ -361,15 +362,20 @@ const MainPage: React.FC = () => {
       
     setRankAuthority(rank[0]);
     if (rank[0].rank === 1) {
-      const filterPart = parts.filter((part) => part.value !== 4);
+      const filterPart = parts.filter((part) => part.value !== 5);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[filterPart.length - 1]);
     } else if (rank[0].rank === 2) {
-      setFilteredParts(parts); // 모든 파트 표시
-      setSelectedPart(parts[parts.length - 1]);
+      const filterPart = parts.filter((part) => part.value !== 5);
+      setFilteredParts(filterPart); // 모든 파트 표시
+      setSelectedPart(filterPart[filterPart.length - 1]);
 
     } else if (rank[0].rank === 3) {
-      const filterPart = parts.filter((part) => part.value === 10 || part.value === 3);
+      const filterPart = parts.filter((part) => part.value === 10 || part.value === 3 || part.value === 4);
+      setFilteredParts(filterPart); // 모든 파트 표시
+      setSelectedPart(filterPart[0]);
+    } else if (rank[0].rank === 4 && userId === 1) {
+      const filterPart = parts.filter((part) => part.value === 1 || part.value === 5);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
     } else {
@@ -734,6 +740,10 @@ const MainPage: React.FC = () => {
       if (selectedPart.value === userTeam)
         return rankAuthority?.report
       else return rankAuthority?.editReport
+    } else if (userRank === 4 && userId === 1) {
+      if (selectedPart.value === userTeam)
+        return rankAuthority?.report
+      else return rankAuthority?.editReport
     } else {
       return rankAuthority?.report
     }
@@ -745,6 +755,10 @@ const MainPage: React.FC = () => {
     } else if (userRank === 2) {
       return rankAuthority?.issue
     } else if (userRank === 3 ) {
+      if (selectedPart.value === userTeam)
+        return rankAuthority?.issue
+      else return rankAuthority?.editIssue
+    } else if (userRank === 4 && userId === 1) {
       if (selectedPart.value === userTeam)
         return rankAuthority?.issue
       else return rankAuthority?.editIssue
