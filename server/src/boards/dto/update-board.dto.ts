@@ -44,4 +44,8 @@ export class UpdateBoardDto {
   @IsOptional() // ✅ 값이 없어도 허용
   @IsString()
   memo?: string; // 게시판 메모
+
+  @IsOptional()
+  @IsString()
+  pm?: string;
 }

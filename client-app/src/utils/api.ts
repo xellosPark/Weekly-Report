@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, AxiosHeaders, Int
 
 // Axios 인스턴스 생성
 const api = axios.create({
-    baseURL: 'http://localhost:9801',  // 서버 URL
+    baseURL: 'https://weekly-report.ubisam.com',  // 서버 URL
     timeout: 5000,  // 타임아웃 시간 (5초)
 });
 
@@ -72,7 +72,7 @@ api.interceptors.response.use(
 
                 //console.log('[응답 인터셉터] Refresh Token으로 토큰 갱신 요청 시작');
                 // Refresh Token을 사용해 새로운 Access Token을 요청
-                const { data } = await axios.post('http://localhost:9801/api/auth/refresh', {}, {
+                const { data } = await axios.post('https://weekly-report.ubisam.com/api/auth/refresh', {}, {
                     headers: { Authorization: `Bearer ${refreshToken}` },
                 });
 

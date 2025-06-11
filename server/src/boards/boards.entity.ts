@@ -55,4 +55,7 @@ export class Board extends BaseEntity {
 
   @DeleteDateColumn()
   deletedAt: Date | null; // 엔티티가 삭제된 시간을 기록하는 필드 (소프트 삭제를 위해 사용)
+
+  @Column({ type: 'text', nullable: true })
+  pm: string; // 전체 달성
 }

@@ -42,6 +42,7 @@ const MainPage: React.FC = () => {
     issue: string;
     memo: string;
     user: User;
+    pm: string;
   }
 
   interface ContextMenuState {
@@ -67,11 +68,12 @@ const MainPage: React.FC = () => {
   // 파트 선택 드롭다운 데이터
   //const parts = ["자동화파트", "로봇파트", "팀장"];
   const parts: { label: string; value: number, site: number}[] = [
-    { label: "로봇자동화사업팀", value: 1, site:2 },
+    { label: "자동화파트", value: 1, site:2 },
     { label: "로봇파트", value: 2, site:1 },
-    { label: "경영지원팀", value: 3, site:1 },
-    { label: "경영지원팀2", value: 4, site:1 },
+    { label: "경영1팀-I", value: 3, site:1 },
+    { label: "경영2팀-J", value: 4, site:1 },
     { label: "FX인원", value: 5, site:1 },
+    { label: "연구소", value: 6, site:1 },
     { label: "팀장", value: 10, site:1 },
   ];
 
@@ -80,7 +82,7 @@ const MainPage: React.FC = () => {
     { rank: 2, report: false, issue: false, editReport: true, editIssue: false },
     { rank: 3, report: false, issue: false, editReport: true, editIssue: true },
     { rank: 4, report: false, issue: false, editReport: true, editIssue: true },
-    { rank: 5, report: false, issue: false, editReport: false, editIssue: true },
+    { rank: 5, report: false, issue: false, editReport: true, editIssue: true },
   ];
 
   const Roles = Object.freeze({
@@ -177,6 +179,7 @@ const MainPage: React.FC = () => {
       completion: "202 . . ",
       progress: "0",
       allprogress: "0",
+      pm: "",
     };
 
     const lastRow = reportData[reportData.length - 1];
@@ -213,6 +216,7 @@ const MainPage: React.FC = () => {
       completion: "202 . . ",
       progress: "0",
       allprogress: "0",
+      pm: "",
     };
   
     const targetRow = reportData[index];
@@ -256,6 +260,7 @@ const MainPage: React.FC = () => {
       completion: "202 . . ",
       progress: "0",
       allprogress: "0",
+      pm: "",
     },
   ]);
 
@@ -271,6 +276,7 @@ const MainPage: React.FC = () => {
         completion: "202 . . ",
         progress: "0",
         allprogress: "0",
+        pm: "",
       },
     ]);
   };
@@ -371,9 +377,11 @@ const MainPage: React.FC = () => {
       setSelectedPart(filterPart[filterPart.length - 1]);
 
     } else if (rank[0].rank === 3) {
-      const filterPart = parts.filter((part) => part.value === 10 || part.value === 3 || part.value === 4);
+      const filterPart = parts.filter((part) => part.value === 10 || part.value === 3 || part.value === 4 || part.value === 6);
       setFilteredParts(filterPart); // 모든 파트 표시
-      setSelectedPart(filterPart[0]);
+      const first = filterPart.filter((part) => part.value === userTeam);
+      //setSelectedPart(filterPart[0]);
+      setSelectedPart(first[0]);
     } else if (rank[0].rank === 4 && userId === 1) {
       const filterPart = parts.filter((part) => part.value === 1 || part.value === 5);
       setFilteredParts(filterPart); // 모든 파트 표시
@@ -421,6 +429,7 @@ const MainPage: React.FC = () => {
           completion: "202 . . ",
           progress: "0",
           allprogress: "0",
+          pm: "",
         },
       ]);
       setInfoContent("");
@@ -512,6 +521,7 @@ const MainPage: React.FC = () => {
       completionDate: reportData.map((obj) => obj.completion).join("^^"),
       achievementRate: reportData.map((obj) => obj.progress).join("^^"),
       totalRate: reportData.map((obj) => obj.allprogress).join("^^"),
+      pm: reportData.map((obj) => obj.pm).join("^^"),
       report: infoContent,
       issue: issueContent,
       memo: memoContent,
@@ -553,6 +563,7 @@ const MainPage: React.FC = () => {
       completionDate: reportData.map((obj) => obj.completion).join("^^"),
       achievementRate: reportData.map((obj) => obj.progress).join("^^"),
       totalRate: reportData.map((obj) => obj.allprogress).join("^^"),
+      pm: reportData.map((obj) => obj.pm).join("^^"),
       report: infoContent,
       issue: issueContent,
       memo: memoContent,
@@ -628,6 +639,7 @@ const MainPage: React.FC = () => {
       완료예정일: escapeExcelFormula(row.completion),
       달성율_금주: toPercentString(row.progress),
       달성율_전체: toPercentString(row.allprogress),
+      PM: escapeExcelFormula(row.pm),
     }));
 
     const worksheet = XLSX.utils.aoa_to_sheet([]);
@@ -697,6 +709,9 @@ const MainPage: React.FC = () => {
     const allprogress = loadData.totalRate
       .split("^^")
       .map((item) => item.trim());
+    const pm = loadData?.pm
+      ? loadData.pm.split("^^").map((item) => item.trim())
+      : [];
 
     // ✅ 배열을 순회하면서 개별 객체 생성
     const transformedData = categories.map((_, index) => ({
@@ -707,6 +722,7 @@ const MainPage: React.FC = () => {
       completion: completion[index] || "",
       progress: progress[index] || "",
       allprogress: allprogress[index] || "",
+      pm: pm[index] || "",
     }));
 
     return transformedData;
@@ -930,6 +946,9 @@ const MainPage: React.FC = () => {
                 </th>
                 <th colSpan={2} className={styles.Progress}>
                   달성율
+                </th>
+                <th rowSpan={2} className={styles.Progress}>
+                  PM
                 </th>
               </tr>
               <tr>

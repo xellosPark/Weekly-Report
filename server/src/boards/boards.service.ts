@@ -56,7 +56,8 @@ export class BoardsService {
       achievementRate: boardDto.achievementRate,
       report: boardDto.report,
       issue: boardDto.issue,
-      memo: boardDto.memo
+      memo: boardDto.memo,
+      pm: boardDto.pm,
     });
     await this.boardRepository.save(createBoard);
 

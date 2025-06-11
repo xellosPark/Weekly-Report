@@ -27,7 +27,7 @@ interface ChangePasswordResponse {
 export const Login = async (id: string, password: string) => {
   try {
     const response = await axios.post<LoginResponse>(
-      "http://localhost:9801/api/auth/signin",
+      "https://weekly-report.ubisam.com/api/auth/signin",
       { email: id, password: password }
     );
     return response;
@@ -48,7 +48,7 @@ export const changePassword = async (currentPw: string, newPw: string) => {
 
   try {
     const response = await api.post<ChangePasswordResponse>(
-      "http://localhost:9801/api/auth/change-password",
+      "https://weekly-report.ubisam.com/api/auth/change-password",
       {
         currentPassword: currentPw,
         newPassword: newPw,
@@ -71,7 +71,7 @@ export const changePassword = async (currentPw: string, newPw: string) => {
 export const getUsers = async () => {
   try {
     const response = await api.get(
-      `http://localhost:9801/api/user`,
+      `https://weekly-report.ubisam.com/api/user`,
     {
       headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
     }
