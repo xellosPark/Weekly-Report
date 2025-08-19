@@ -15,6 +15,38 @@ import { getUsers } from "../../utils/userApi";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
+interface MemoTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+const MemoTextarea = React.memo(function MemoTextarea({ value, onChange, ...props }: MemoTextareaProps) {
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const adjustHeight = () => {
+    if (ref.current) {
+      ref.current.style.height = "auto";
+      ref.current.style.height = `${ref.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [value])
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={(e) => {
+        onChange(e);
+        adjustHeight();
+      }}
+      {...props}
+    />
+  );
+});
+
 const MainPage: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -68,12 +100,12 @@ const MainPage: React.FC = () => {
   // 파트 선택 드롭다운 데이터
   //const parts = ["자동화파트", "로봇파트", "팀장"];
   const parts: { label: string; value: number, site: number}[] = [
-    { label: "자동화파트", value: 1, site:2 },
     { label: "로봇파트", value: 2, site:1 },
+    { label: "자동화파트", value: 1, site:2 },
+    { label: "연구소", value: 6, site:1 },
     { label: "경영1팀-I", value: 3, site:1 },
     { label: "경영2팀-J", value: 4, site:1 },
     { label: "FX인원", value: 5, site:1 },
-    { label: "연구소", value: 6, site:1 },
     { label: "팀장", value: 10, site:1 },
   ];
 
@@ -82,7 +114,8 @@ const MainPage: React.FC = () => {
     { rank: 2, report: false, issue: false, editReport: true, editIssue: false },
     { rank: 3, report: false, issue: false, editReport: true, editIssue: true },
     { rank: 4, report: false, issue: false, editReport: true, editIssue: true },
-    { rank: 5, report: false, issue: false, editReport: true, editIssue: true },
+    // { rank: 5, report: false, issue: false, editReport: true, editIssue: true },
+    { rank: 5, report: true, issue: true, editReport: true, editIssue: true },
   ];
 
   const Roles = Object.freeze({
@@ -372,10 +405,9 @@ const MainPage: React.FC = () => {
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[filterPart.length - 1]);
     } else if (rank[0].rank === 2) {
-      const filterPart = parts.filter((part) => part.value !== 5);
+        const filterPart = parts.filter((part) => part.value !== 5);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[filterPart.length - 1]);
-
     } else if (rank[0].rank === 3) {
       const filterPart = parts.filter((part) => part.value === 10 || part.value === 3 || part.value === 4 || part.value === 6);
       setFilteredParts(filterPart); // 모든 파트 표시
@@ -386,7 +418,12 @@ const MainPage: React.FC = () => {
       const filterPart = parts.filter((part) => part.value === 1 || part.value === 5);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
-    } else {
+    } else if (rank[0].rank === 5) {
+      const filterPart = parts.filter((part) => part.value === 3 || part.value === 4);
+      setFilteredParts(filterPart); // 모든 파트 표시
+      setSelectedPart(filterPart[0]);
+    }
+    else {
       const filtered = parts.filter((part) => part.value === userTeam);
       //console.log('filtered', filtered);
 
@@ -1023,11 +1060,11 @@ const MainPage: React.FC = () => {
                             )}
                           </div>
                         ) : (
-                          <textarea
-                            ref={(el) => {
-                              textareaRefs.current[`${index}-${field}`] = el;
-                              if (el) adjustTextareaHeight(el);
-                            }}
+                          <MemoTextarea
+                            // ref={(el) => {
+                            //   textareaRefs.current[`${index}-${field}`] = el;
+                            //   if (el) adjustTextareaHeight(el);
+                            // }}
                             style={{
                               color: "black",
                               // cursor:
@@ -1038,22 +1075,24 @@ const MainPage: React.FC = () => {
                               overflowY: "auto", // ✅ 스크롤바 자동 활성화
                               maxHeight: "200px", // ✅ 최대 높이 제한 (200px)
                               resize: "none", // 사용자가 크기 조절하지 못하도록 설정
+                              alignContent: "center",
                             }}
                             className={
                               colIndex === 0
                                 ? styles.FirstTextArea
+                                : colIndex === 7 ? styles.PMArea
                                 : styles.MaintextArea
                             }
                             value={row[field as keyof typeof row]}
                             onChange={(e) => {
                               handleMainChange(index, field, e.target.value);
-                              adjustTextareaHeight(e.target);
+                              //adjustTextareaHeight(e.target);
                             }}
-                            onInput={(e) =>
-                              adjustTextareaHeight(
-                                e.target as HTMLTextAreaElement
-                              )
-                            }
+                            // onInput={(e) =>
+                            //   adjustTextareaHeight(
+                            //     e.target as HTMLTextAreaElement
+                            //   )
+                            // }
                             // 입력 시 크기 조절
                             disabled={
                               GetRankAuthorityReport()

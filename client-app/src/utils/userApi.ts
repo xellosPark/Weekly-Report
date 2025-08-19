@@ -23,11 +23,12 @@ interface ChangePasswordResponse {
   success?: boolean;
 }
 
-/* GET */
+const ip = process.env.REACT_APP_API_DEV === 'true' ? process.env.REACT_APP_API_LOCAL : process.env.REACT_APP_API_SERVER;
+
 export const Login = async (id: string, password: string) => {
   try {
     const response = await axios.post<LoginResponse>(
-      "https://weekly-report.ubisam.com/api/auth/signin",
+      `${ip}/api/auth/signin`,
       { email: id, password: password }
     );
     return response;
@@ -48,7 +49,7 @@ export const changePassword = async (currentPw: string, newPw: string) => {
 
   try {
     const response = await api.post<ChangePasswordResponse>(
-      "https://weekly-report.ubisam.com/api/auth/change-password",
+      `${ip}/api/auth/change-password`,
       {
         currentPassword: currentPw,
         newPassword: newPw,
@@ -71,7 +72,7 @@ export const changePassword = async (currentPw: string, newPw: string) => {
 export const getUsers = async () => {
   try {
     const response = await api.get(
-      `https://weekly-report.ubisam.com/api/user`,
+      `${ip}/api/user`,
     {
       headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
     }

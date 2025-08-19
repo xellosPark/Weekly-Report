@@ -1,7 +1,7 @@
 import axios from "axios";
 import api from "./api";
 
-/* GET */
+const ip = process.env.REACT_APP_API_DEV === 'true' ? process.env.REACT_APP_API_LOCAL : process.env.REACT_APP_API_SERVER;
 
 // 로그인 하자마자 바로 업데이트가 필요한 부분으로 param으로 전달
 export const LoadBoard = async (id_: number, rank_: number) => {
@@ -24,7 +24,7 @@ export const LoadBoard = async (id_: number, rank_: number) => {
   
 
   response = await api.get(
-    `https://weekly-report.ubisam.com/api/boards/${id_}?rank=${rank_}`,
+    `${ip}/api/boards/${id_}?rank=${rank_}`,
     {
       headers: { "Content-Type": "application/json" }, // ✅ JSON 명시
     }
@@ -37,7 +37,7 @@ export const SaveBoard = async (board: any, id_: number) => {
   //console.log("📤 SaveBoard 호출됨 - 전송할 데이터:", board);
   try {
     const response = await api.post(
-      `https://weekly-report.ubisam.com/api/boards/${id_}`,
+      `${ip}/api/boards/${id_}`,
       JSON.stringify(board), // JSON 데이터 전송
       {
         headers: {
@@ -58,7 +58,7 @@ export const SaveBoard = async (board: any, id_: number) => {
 
 export const EditBoard = async (board: any, original: number | undefined) => {
   const response = await api.patch(
-    `https://weekly-report.ubisam.com/api/boards/edit/${original}`,
+    `${ip}/api/boards/edit/${original}`,
     board, // JSON 데이터 전송
   );
   if (response?.data) return "업데이트 성공";

@@ -2,7 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, AxiosHeaders, Int
 
 // Axios 인스턴스 생성
 const api = axios.create({
-    baseURL: 'https://weekly-report.ubisam.com',  // 서버 URL
+    baseURL: process.env.REACT_APP_API_DEV === 'true' ?
+             process.env.REACT_APP_API_LOCAL : process.env.REACT_APP_API_SERVER, //'https://weekly-report.ubisam.com',  // 서버 URL
     timeout: 5000,  // 타임아웃 시간 (5초)
 });
 
@@ -69,10 +70,10 @@ api.interceptors.response.use(
                     console.error('[응답 인터셉터] Refresh Token이 없습니다.');
                     throw new Error('Refresh Token이 없습니다.');
                 }
-
+                const ip = process.env.REACT_APP_API_DEV === 'true' ? process.env.REACT_APP_API_LOCAL : process.env.REACT_APP_API_SERVER;
                 //console.log('[응답 인터셉터] Refresh Token으로 토큰 갱신 요청 시작');
                 // Refresh Token을 사용해 새로운 Access Token을 요청
-                const { data } = await axios.post('https://weekly-report.ubisam.com/api/auth/refresh', {}, {
+                const { data } = await axios.post(`${ip}/api/auth/refresh`, {}, {
                     headers: { Authorization: `Bearer ${refreshToken}` },
                 });
 
