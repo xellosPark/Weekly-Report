@@ -101,6 +101,7 @@ const MainPage: React.FC = () => {
   //const parts = ["자동화파트", "로봇파트", "팀장"];
   const parts: { label: string; value: number, site: number}[] = [
     { label: "로봇파트", value: 2, site:1 },
+    { label: "시스템사업팀", value: 7, site:3 },
     { label: "자동화파트", value: 1, site:2 },
     { label: "연구소", value: 6, site:1 },
     { label: "경영1팀-I", value: 3, site:1 },
@@ -115,7 +116,7 @@ const MainPage: React.FC = () => {
     { rank: 3, report: false, issue: false, editReport: true, editIssue: true },
     { rank: 4, report: false, issue: false, editReport: true, editIssue: true },
     // { rank: 5, report: false, issue: false, editReport: true, editIssue: true },
-    { rank: 5, report: true, issue: true, editReport: true, editIssue: true },
+    { rank: 5, report: false, issue: false, editReport: true, editIssue: true },
   ];
 
   const Roles = Object.freeze({
@@ -129,6 +130,7 @@ const MainPage: React.FC = () => {
   const [selectedPart, setSelectedPart] = useState<{
     label: string;
     value: number;
+    site: number;
   }>(parts[0]);
 
   // ✅ useState의 초기 타입을 명시적으로 지정
@@ -419,7 +421,7 @@ const MainPage: React.FC = () => {
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
     } else if (rank[0].rank === 5) {
-      const filterPart = parts.filter((part) => part.value === 3 || part.value === 4);
+      const filterPart = parts.filter((part) => part.value === 3 || part.value === 4 || part.value === 7);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
     }
@@ -797,7 +799,12 @@ const MainPage: React.FC = () => {
       if (selectedPart.value === userTeam)
         return rankAuthority?.report
       else return rankAuthority?.editReport
-    } else {
+    } else if (userRank === 5) {
+      if (selectedPart.site === userSite)
+        return rankAuthority?.report
+      else return rankAuthority?.editReport
+    }
+    else {
       return rankAuthority?.report
     }
   }
@@ -813,6 +820,10 @@ const MainPage: React.FC = () => {
       else return rankAuthority?.editIssue
     } else if (userRank === 4 && userId === 1) {
       if (selectedPart.value === userTeam)
+        return rankAuthority?.issue
+      else return rankAuthority?.editIssue
+    } else if (userRank === 5) {
+      if (selectedPart.site === userSite)
         return rankAuthority?.issue
       else return rankAuthority?.editIssue
     } else {
