@@ -157,6 +157,18 @@
 .modalCloseButton:hover {
   background-color: #e04b52;
 }
+
+.headerMenuView {
+  margin-left: 2em;
+}
+
+.headerMenu {
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+  background-color: #555;
+  border-radius: 0.4em;
+}
+
 /* ✅ 간단한 페이드인 효과 */
 @keyframes fadeIn {
   from {

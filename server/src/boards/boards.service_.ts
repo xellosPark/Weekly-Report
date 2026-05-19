@@ -3,7 +3,7 @@ import { BoardDto } from './dto/create-board.dto';
 import { v4 as uuid } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Board } from './boards.entity';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from 'src/user/user.entity';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { UserRank } from 'src/@common/enums/global.enum';
@@ -20,50 +20,21 @@ export class BoardsService {
   ) { }
 
 
-  // async existBoard(boardDto: BoardDto, userId: number): Promise<Board> {
-  //   const user = await this.userRepository.findOne({ where: { id: userId  } });
-  //   if (!user) {
-  //     throw new NotFoundException("User not found");
-  //   }
-
-  //   const board = await this.boardRepository.find({
-  //     where: { 
-  //       part: user.team,
-  //       title: boardDto.title,
-  //       user: { id: userId } }, // 🔗 userId에 해당하는 board 조회
-  //       relations: ['user'],
-  //   });
-
-  //   return board[0];
-  // }
-
-  async existBoard(boardDto: BoardDto, userId: number): Promise<Board | null> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async existBoard(boardDto: BoardDto, userId: number): Promise<Board> {
+    const user = await this.userRepository.findOne({ where: { id: userId  } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    // 1. 현재 기준 조회 시작 날짜 계산 (loadBoard와 동일한 로직)
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    //let startDate: Date;
-
-    const startDate = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-
-    // 2. 조회 조건에 날짜 범위(MoreThanOrEqual) 추가
-    const board = await this.boardRepository.findOne({
+    const board = await this.boardRepository.find({
       where: { 
         part: user.team,
         title: boardDto.title,
-        user: { id: userId },
-        // TypeORM의 MoreThanOrEqual을 사용하여 startDate 이후 데이터만 조회
-        createdAt: MoreThanOrEqual(startDate) 
-      },
-      relations: ['user'],
+        user: { id: userId } }, // 🔗 userId에 해당하는 board 조회
+        relations: ['user'],
     });
 
-    return board; // find 대신 findOne을 사용하는 것이 더 명확합니다.
+    return board[0];
   }
 
   async createBoard(boardDto: BoardDto, userId: number): Promise<Board> {
@@ -83,7 +54,6 @@ export class BoardsService {
       performance: boardDto.performance,
       completionDate: boardDto.completionDate,
       achievementRate: boardDto.achievementRate,
-      totalRate: boardDto.totalRate,
       report: boardDto.report,
       issue: boardDto.issue,
       memo: boardDto.memo,
@@ -112,89 +82,31 @@ export class BoardsService {
     //   relations: ['user'], // 유저 정보 전부 포함
     // });
 
-    // const data = await this.boardRepository
-    //   .createQueryBuilder('board')
-    //   .leftJoin('board.user', 'user') // join만 하고 select는 따로
-    //   .addSelect(['user.id'])       // user.id만 추가
-    //   .getMany();
-
-    const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
-
-  let startDate: Date;
-
-  // 1. 날짜 범위 설정 (1월 또는 2월일 경우 작년 11월 1일부터)
-  if (currentMonth === 1 || currentMonth === 2) {
-    // 작년 11월 1일 00:00:00
-    startDate = new Date(`${currentYear - 1}-11-01T00:00:00.000Z`);
-  } else {
-    // 올해 1월 1일 00:00:00
-    startDate = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-  }
-
-  // 종료일은 현재 시점까지
-  const endDate = new Date(); 
-
-  // 2. QueryBuilder 작성
-  const query = this.boardRepository.createQueryBuilder('board')
-    .leftJoin('board.user', 'user')
-    .addSelect(['user.id'])
-    // 설정한 시작일부터 현재까지의 데이터만 조회
-    .where('board.createdAt BETWEEN :start AND :end', { 
-      start: startDate, 
-      end: endDate 
-    });
+    const data = await this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoin('board.user', 'user') // join만 하고 select는 따로
+      .addSelect(['user.id'])       // user.id만 추가
+      .getMany();
 
     //console.log('all data', data);
     
-    //return data;// await this.boardRepository.find();
-    return await query.getMany();
+    return data;// await this.boardRepository.find();
   }
-
   async loadBoard(userId: number, rank: UserRank): Promise<Board[]> {
     const user = await this.userRepository.findOne({ where: { id: userId  } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
-
-  let startDate: Date;
-
-  // 1. 날짜 범위 설정 (1월 또는 2월일 경우 작년 11월 1일부터)
-  if (currentMonth === 1 || currentMonth === 2) {
-    // 작년 11월 1일 00:00:00
-    startDate = new Date(`${currentYear - 1}-11-01T00:00:00.000Z`);
-  } else {
-    // 올해 1월 1일 00:00:00
-    startDate = new Date(`${currentYear}-01-01T00:00:00.000Z`);
-  }
-
-  // 종료일은 현재 시점까지
-  const endDate = new Date(); 
-
-  // 2. QueryBuilder 작성
-  const query = this.boardRepository.createQueryBuilder('board')
-    .leftJoin('board.user', 'user')
-    .addSelect(['user.id'])
-    // 설정한 시작일부터 현재까지의 데이터만 조회
-    .where('board.createdAt BETWEEN :start AND :end', { 
-      start: startDate, 
-      end: endDate 
-    });
-
-    // if (rank === UserRank.Support) {
-    //   //console.log('여기다');
+    if (rank === UserRank.Support) {
+      //console.log('여기다');
       
-    //   return await this.boardRepository.find({
-    //     where: { 
-    //       //rank: rank,
-    //       user: { site: 1  } }, // 🔗 userId에 해당하는 board 조회
-    //   });
-    // }
+      return await this.boardRepository.find({
+        where: { 
+          //rank: rank,
+          user: { site: 1  } }, // 🔗 userId에 해당하는 board 조회
+      });
+    }
 
     // return await this.boardRepository.find({
     //   where: { 
@@ -202,18 +114,11 @@ export class BoardsService {
     //     user: { id: userId} }, // 🔗 userId에 해당하는 board 조회
     // });
 
-    // return await this.boardRepository
-    // .createQueryBuilder('board')
-    // .leftJoin('board.user', 'user') // join만 하고 select는 따로
-    // .addSelect(['user.id'])       // user.id만 추가
-    // .getMany();
-
-    // 3. 권한 로직 처리
-  if (rank === UserRank.Support) {
-    query.andWhere('user.site = :siteId', { siteId: 1 });
-  }
-
-    return await query.getMany();
+    return await this.boardRepository
+    .createQueryBuilder('board')
+    .leftJoin('board.user', 'user') // join만 하고 select는 따로
+    .addSelect(['user.id'])       // user.id만 추가
+    .getMany();
   }
 
   async updateBoard(userId: number, boardDto: BoardDto): Promise<UpdateBoardDto> {

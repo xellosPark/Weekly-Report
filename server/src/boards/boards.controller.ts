@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { BoardDto } from './dto/create-board.dto';
 import { Response } from 'express';
@@ -84,16 +84,16 @@ export class BoardsController {
         //console.log('board', createBoardDto);
 
         const exist = await this.boardsService.existBoard(createBoardDto, id);
-        //console.log('board 존재', exist);
+        console.log('board 존재', exist, userId, id);
 
-        if (exist === undefined && userId !== id) {
+        if ((exist === undefined || exist === null) && userId !== id) {
             console.log('게시물 추가 x');
             
             return { success: false, message: '해당 유저가 게시물 추가 후에 수정이 가능합니다'};
             throw new NotFoundException('해당 게시글이 추가되지 않아 입력 안됨');
         }
 
-        if (exist === undefined) {
+        if (exist === undefined || exist === null) {
             console.log('게시물 생성');
             
             return this.boardsService.createBoard(createBoardDto, userId);
@@ -104,6 +104,8 @@ export class BoardsController {
         }
         
     }
+
+    
 
     // @Post()
     // async test(@Res() res: Response) {

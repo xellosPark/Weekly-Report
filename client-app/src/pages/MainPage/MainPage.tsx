@@ -12,7 +12,7 @@ import { EditBoard, LoadBoard, SaveBoard } from "../../utils/boardApi";
 import { useAuth } from "../../context/AuthContext";
 import { getUsers } from "../../utils/userApi";
 // import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // 화살표 아이콘 추가
-import * as XLSX from "xlsx";
+import XLSX from 'xlsx-js-style';
 import { saveAs } from "file-saver";
 
 interface MemoTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -147,7 +147,7 @@ const MainPage: React.FC = () => {
   const [data, setData] = useState<Board[]>([]);
   const [isEdit, setIsEdit] = useState(false);
   const [selectOriginalData, setSelectOriginalData] = useState<Board>();
-  const { isAuth, userId, userTeam, userRank, userSite, logout } = useAuth();
+  const { isAuth, userId, userTeam, userRank, userSite, logout, userName } = useAuth();
   // 우클릭 메뉴 상태
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -182,6 +182,8 @@ const MainPage: React.FC = () => {
     }
     return null; // 에러가 없을 경우 null 반환
   }, null);
+
+  const [nowYear, setNowYear] = useState(new Date().getFullYear());
 
   // 우클릭 이벤트 핸들러
   // const handleContextMenu = (event: React.MouseEvent<HTMLTableElement>) => {
@@ -267,8 +269,35 @@ const MainPage: React.FC = () => {
   
     const newData = [...reportData];
     newData.splice(index, 1);
+    console.log("delete", newData);
+    
     setReportData(newData);
     setContextMenu(null);
+  };
+
+  const handleAddRow2 = () => {
+    if (!contextMenu) return;
+
+    const defaultRow = {
+      category: "",
+      weeklyPlan: "",
+      prevPlan: "",
+      prevResult: "",
+      completion: "202 . . ",
+      progress: "0",
+      allprogress: "0",
+      pm: "",
+    };
+
+    const index = contextMenu.rowIndex;
+    const newData = [...reportData]; // 원본 배열 복사
+    
+    // splice(시작위치, 삭제할갯수, 추가할아이템)
+    // index + 1 위치에 0개를 지우고, 새로운 기본 행을 넣습니다.
+    newData.splice(index + 1, 0, { ...defaultRow }); 
+
+    setReportData(newData);
+    setContextMenu(null); // 메뉴 닫기
   };
   
 
@@ -395,6 +424,7 @@ const MainPage: React.FC = () => {
     setCurrentWeek(weekNow);
     setSelectedWeek(weekNow);
     setCopiedWeek(weekNow);
+    setNowYear(currentYear);
     checkNextWeekAvailable();
 
     //🔹 team 값에 따라 필터링
@@ -420,7 +450,7 @@ const MainPage: React.FC = () => {
       const filterPart = parts.filter((part) => part.value === 1 || part.value === 5);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
-    } else if (rank[0].rank === 5) {
+    } else if (rank[0].rank === 5 && userId === 9) {
       const filterPart = parts.filter((part) => part.value === 3 || part.value === 4 || part.value === 7);
       setFilteredParts(filterPart); // 모든 파트 표시
       setSelectedPart(filterPart[0]);
@@ -822,7 +852,7 @@ const MainPage: React.FC = () => {
       if (selectedPart.value === userTeam)
         return rankAuthority?.issue
       else return rankAuthority?.editIssue
-    } else if (userRank === 5) {
+    } else if (userRank === 5 && userId === 9) {
       if (selectedPart.site === userSite)
         return rankAuthority?.issue
       else return rankAuthority?.editIssue
@@ -830,6 +860,483 @@ const MainPage: React.FC = () => {
       return rankAuthority?.issue
     }
   }
+
+  const handleExcelUpload = (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      // 💡 해결책: target이 null일 가능성을 여기서 차단합니다!
+      if (!event.target) return; 
+
+      // 이제 TypeScript가 안심하고 아래 코드를 에러 없이 통과시킵니다.
+      const data = event.target.result;
+      
+      // 1. 엑셀 파일 읽기
+      const workbook = XLSX.read(data, { type: "binary" });
+      
+      // 2. 첫 번째 시트 이름 가져오기
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // 3. 시트 데이터를 JSON 배열로 변환 (아까 수정한 부분)
+      const excelData = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet);
+
+      // 4. 내 데이터 형식에 맞게 매핑
+      const formattedData = excelData.map((row) => ({
+        category: String(row["카테고리"] || ""),
+        weeklyPlan: String(row["금주계획"] || ""),
+        prevPlan: String(row["전주계획"] || ""),
+        prevResult: String(row["전주실적"] || ""),
+        completion: String(row["완료예정일"] || "202 . . "),
+        progress: String(row["진행률"] || "0"),
+        allprogress: String(row["전체진행률"] || "0"),
+        pm: String(row["담당자"] || ""),
+      }));
+
+      // 5. 화면 상태 업데이트
+      setReportData(formattedData);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const validateExcelFormat = (jsonData: any[][]) => {
+    // 1. 최소 행 개수 체크 (헤더 2줄 + 최소 1데이터줄 = 3행 이상)
+    if (jsonData.length < 3) {
+      return { isValid: false, message: "엑셀에 데이터가 존재하지 않습니다." };
+    }
+
+    // 2. 헤더 키워드 체크 (예: 2행의 특정 컬럼들이 일치하는지)
+    const secondHeaderRow = jsonData[2]; // 0: 상단날짜, 1: 상세헤더
+    const expectedHeaders = ["계획업무", "계획업무", "수행실적"];
+    
+    // 필수 키워드가 포함되어 있는지 확인
+    const hasRequiredHeaders = 
+      String(secondHeaderRow[1]).includes("계획업무") && 
+      String(secondHeaderRow[3]).includes("수행실적");
+
+    if (!hasRequiredHeaders) {
+      return { isValid: false, message: "엑셀 포맷이 일치하지 않습니다. (헤더 구성 불일치)" };
+    }
+
+    const hasRequiredHeaders2 = 
+      String(secondHeaderRow[4]).includes("(yyyy.mm.dd)") && 
+      String(secondHeaderRow[5]).includes("금주") &&
+      String(secondHeaderRow[6]).includes("전체");
+
+    if (!hasRequiredHeaders2) {
+      return { isValid: false, message: "엑셀 포맷이 일치하지 않습니다. (헤더 구성 불일치)" };
+    }
+
+    // 3. 컬럼 개수 체크 (A~H열까지 최소 8개 이상인지)
+    if (secondHeaderRow.length < 8) {
+      return { isValid: false, message: "열(Column) 개수가 부족합니다. 올바른 양식을 사용해주세요." };
+    }
+
+    return { isValid: true, message: "" };
+  };
+
+  const defaultRow = {
+      category: "",
+      weeklyPlan: "",
+      prevPlan: "",
+      prevResult: "",
+      completion: "202 . . ",
+      progress: "0",
+      allprogress: "0",
+      pm: "",
+    };
+
+
+  const warnning = () => {
+    const guideMessage = 
+      "포맷이 맞지 않으면 작성 중인 데이터가 모두 삭제됩니다.\n" +
+      "엑셀 불러오기 전 엑셀 내보내기로 진행된 파일을 수정하여 진행해주세요.";
+
+    // 1. 안내 문구를 먼저 보여주고 확인/취소를 받습니다.
+    if (window.confirm(guideMessage)) {
+      // 2. 직접 함수를 실행하는 게 아니라, 파일 선택 창을 강제로 엽니다.
+      document.getElementById('excel-upload')?.click();
+    }
+  };
+
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 1. 현재 데이터가 기본값인지 확인하는 함수
+    const isDataChanged = () => {
+      // 행이 1개보다 많으면 이미 데이터를 추가한 것으로 간주
+      if (reportData.length > 2) return true;
+
+      // 행이 1개일 때, 그 내용이 defaultRow와 하나라도 다르면 수정된 것으로 간주
+      if (reportData.length === 1) {
+        const firstRow = reportData[0];
+        return Object.keys(defaultRow).some(
+          (key) => firstRow[key as keyof typeof defaultRow] !== defaultRow[key as keyof typeof defaultRow]
+        );
+      }
+
+    return false;
+    };
+
+    // 2. 변경사항이 있다면 사용자에게 확인 받기
+    if (isDataChanged()) {
+      const confirmOverwrite = window.confirm(
+        "이미 작성 중인 데이터가 있습니다. 엑셀 파일을 불러오면 현재 내용은 삭제됩니다. 계속하시겠습니까?"
+      );
+      if (!confirmOverwrite) {
+        // 사용자가 '취소'를 누르면 input 값을 초기화하고 중단
+        e.target.value = ""; 
+        return;
+      }
+    }
+
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const data = event.target?.result;
+      const workbook = XLSX.read(data, { type: 'binary' });
+
+      // 1. 첫 번째 시트 가져오기
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      // 2. 시트 데이터를 JSON 배열로 변환 (header: 1 옵션은 행 단위 배열로 가져옴)
+      const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      // [중요] 포맷 검증 단계 추가
+      const validation = validateExcelFormat(jsonData);
+      if (!validation.isValid) {
+        alert(validation.message); // "엑셀 포맷이 일치하지 않습니다..."
+        e.target.value = ""; // input 초기화
+        return; // 함수 종료 (데이터 저장 안 함)
+      }
+
+      // 1. "정보보고"라는 글자가 시작되는 행의 인덱스를 찾습니다.
+      const footerStartIdx = jsonData.findIndex((row) => 
+        row.some(cell => String(cell).includes("정보보고"))
+      );
+
+      // % 문자를 제거하는 헬퍼 함수
+      const cleanPercent = (value: any) => {
+        if (!value) return "0";
+        // String으로 변환 후 % 기호 제거, 공백 제거
+        return String(value).replace(/%/g, "").trim();
+      };
+
+      // 2. 본문 데이터만 추출 (헤더 2줄 제외 ~ footer 시작 전까지)
+      // 만약 footer를 못 찾았다면 끝까지 가져옵니다.
+      const bodyRows = footerStartIdx !== -1 
+        ? jsonData.slice(2, footerStartIdx) 
+        : jsonData.slice(2);
+
+      const importedData = bodyRows
+        .filter(row => row[0]) // A열(구분)이 있는 유효한 행만
+        .map((row, index) => ({
+          
+          category: String(row[0] || ""),
+          weeklyPlan: String(row[1] || ""),
+          prevPlan: String(row[2] || ""),
+          prevResult: String(row[3] || ""),
+          completion: String(row[4] || ""),
+          progress: cleanPercent(row[5]),
+          allprogress: cleanPercent(row[6]),
+          pm: String(row[7] || ""),
+        }));
+
+      // 3. Footer 데이터는 별도로 찾아서 상태 업데이트
+      if (footerStartIdx !== -1) {
+        const contentsRow = jsonData[footerStartIdx + 1]; // 라벨 행 바로 다음 행
+        if (contentsRow) {
+          setInfoContent(String(contentsRow[0] || ""));  // A, B열
+          setIssueContent(String(contentsRow[2] || "")); // C, D열
+          setMemoContent(String(contentsRow[4] || ""));  // E~H열
+        }
+      }
+
+      setReportData(importedData);
+    };
+
+    //reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
+  };
+
+  const exportToExcel = () => {
+  // 1. 헤더 데이터 설정 (2단 구조)
+
+    if (!reportData || reportData.length === 0) {
+      alert("데이터가 없습니다.");
+      return;
+    }
+
+    // 1. 현재 데이터가 기본값인지 확인하는 함수
+    const isDataChanged = () => {
+      // 행이 1개보다 많으면 이미 데이터를 추가한 것으로 간주
+      if (reportData.length > 2) return true;
+
+      // 행이 1개일 때, 그 내용이 defaultRow와 하나라도 다르면 수정된 것으로 간주
+      if (reportData.length === 1) {
+        const firstRow = reportData[0];
+        return Object.keys(defaultRow).some(
+          (key) => firstRow[key as keyof typeof defaultRow] !== defaultRow[key as keyof typeof defaultRow]
+        );
+      }
+
+    return false;
+    };
+
+    // 2. 변경사항이 있다면 사용자에게 확인 받기
+    if (!isDataChanged()) {
+      alert("데이터가 없습니다.");
+      return;
+    }
+
+
+    const week = currentWeek !== null ? getMonthWeekLabel(currentWeek) : "";
+    const title = currentYear + "년 " + week + " 업무보고 (" + userName + ")";
+    
+  const header = [
+    [title],
+    ["구분", nextWeek !== null ? getMonthWeekLabel(nextWeek) : "", currentWeek !== null ? getMonthWeekLabel(currentWeek) : "", "", "완료예정일", "달성율", "", "PM"],
+    ["",     "계획업무",                                            "계획업무",                                           "수행실적", "(yyyy.mm.dd)", "금주", "전체", ""]
+  ];
+
+  // 2. 바디 데이터 변환 (reportData -> array of arrays)
+  const body = reportData.map(row => [
+      row.category, // 구분
+      row.weeklyPlan,
+      row.prevPlan,
+      row.prevResult,
+      row.completion,
+      row.progress + "%",
+      row.allprogress + "%",
+      row.pm
+    ]);
+
+    // 3. 워크시트 생성
+    const ws = XLSX.utils.aoa_to_sheet([...header, ...body]);
+
+    // 2. 스타일 정의 (공통으로 쓸 스타일 객체)
+    // 공통 보더 스타일 생성 함수 (색상 추가)
+    const getBorderStyle = (color = "000000") => ({
+      top: { style: "thin", color: { rgb: color } },
+      bottom: { style: "thin", color: { rgb: color } },
+      left: { style: "thin", color: { rgb: color } },
+      right: { style: "thin", color: { rgb: color } },
+    });
+
+    // 공통 스타일 생성 함수
+    const createStyle = (bgColor = "ffffff", isBold = true, borderColor = "000000") => ({
+      fill: { fgColor: { rgb: bgColor } },
+      font: { bold: isBold, name: "맑은 고딕", sz: 10 },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true },
+      border: getBorderStyle(borderColor)
+    });
+
+    // 스타일 정의 (B: Blue, Y: Yellow, R: Red, W: White)
+    const styles = {
+      B: createStyle("dce6f1", true, "222222"), // 보더도 연한 파랑으로 예시
+      Y: createStyle("ffffcc", true, "222222"),
+      R: createStyle("ffcccc", true, "222222"),
+      W: createStyle("ffffff", true, "222222"),
+    };
+
+    const bodyStyle_W = {
+      fill: { fgColor: { rgb: "ffffff" } },
+      font: { name: "맑은 고딕", sz: 10 },
+      alignment: { horizontal: "left", vertical: "center", wrapText: true }, // 텍스트 줄바꿈 포함
+      border: {
+        top: { style: "thin", color: { rgb: "222222" } },
+        bottom: { style: "thin", color: { rgb: "222222" } },
+        left: { style: "thin", color: { rgb: "222222" } },
+        right: { style: "thin", color: { rgb: "222222" } }
+      }
+    };
+
+    const bodyStyle_A = {
+      fill: { fgColor: { rgb: "ffffff" } },
+      font: { name: "맑은 고딕", sz: 10 },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true }, // 텍스트 줄바꿈 포함
+      border: {
+        top: { style: "thin", color: { rgb: "222222" } },
+        bottom: { style: "thin", color: { rgb: "222222" } },
+        left: { style: "thin", color: { rgb: "222222" } },
+        right: { style: "thin", color: { rgb: "222222" } }
+      }
+    };
+
+    const bodyStyle_G = {
+      ...bodyStyle_W,
+      fill: { fgColor: { rgb: "bfeeb3" } }, // 화면의 완료 색상과 맞춤
+    };
+
+    const bodyStyle_GG = {
+      ...bodyStyle_A,
+      fill: { fgColor: { rgb: "bfeeb3" } }, // 화면의 완료 색상과 맞춤
+    };
+
+    const memoHeaderStyle1 = createStyle("dce6f1", true, "bfbfbf"); // 회색 배경 헤더
+    const memoHeaderStyle2 = createStyle("ffcccc", true, "bfbfbf"); // 회색 배경 헤더
+    const memoHeaderStyle3 = createStyle("ffffcc", true, "bfbfbf"); // 회색 배경 헤더
+    const memoDataStyle = {
+      fill: { fgColor: { rgb: "ffffff" } },
+      font: { name: "맑은 고딕", sz: 10 },
+      alignment: { horizontal: "left", vertical: "top", wrapText: true },
+      border: getBorderStyle("bfbfbf")
+    };
+
+    // 셀 주소별 스타일 매핑
+    const cellStyleMap = {
+      // A열 (구분)
+      //"A1": styles.W, "B1": styles.W, "C1": styles.W, "D1": styles.W, "E1": styles.W, "F1": styles.W, "G1": styles.W, "H1": styles.W,
+      "A2": styles.B,
+      // B열 (차주 계획)
+      "B2": styles.Y, "B3": styles.Y,
+      // C, D열 (금주 계획/실적)
+      "C2": styles.R, "C3": styles.R,
+      "D2": styles.R, "D3": styles.R,
+      // E, F, G, H열 (기타)
+      "E2": styles.B, "E3": styles.B,
+      "F2": styles.B, "F3": styles.B,
+      "G2": styles.B, "G3": styles.B,
+      "H2": styles.B, "H3": styles.B,
+    };
+
+    // 매핑된 스타일 적용
+    Object.entries(cellStyleMap).forEach(([cellAddr, style]) => {
+      if (ws[cellAddr]) {
+        ws[cellAddr].s = style;
+      }
+    });
+
+    // 병합된 셀(A1, E1, H1 등)의 경우, 병합 범위의 시작 셀에 스타일을 적용하면 됩니다.
+    if (ws['A1']) ws['A1'].s = styles.W;
+
+    // 열 너비 설정 (A열부터 순서대로)
+    // ws['!cols'] = [
+    //   { wch: 15 }, // A열 (구분)
+    //   { wch: 40 }, // B열 (다음주 계획) - 내용이 많으므로 크게
+    //   { wch: 40 }, // C열 (이번주 계획)
+    //   { wch: 40 }, // D열 (수행실적)
+    //   { wch: 15 }, // E열 (완료예정일)
+    //   { wch: 10 }, // F열 (달성율 금주)
+    //   { wch: 10 }, // G열 (달성율 전체)
+    //   { wch: 15 }, // H열 (PM)
+    // ];
+
+    ws['!cols'] = [
+      { wch: 30 }, // A열 (구분)
+      { wch: 45 }, // B열 (다음주 계획) - 내용이 많으므로 크게
+      { wch: 45 }, // C열 (이번주 계획)
+      { wch: 45 }, // D열 (수행실적)
+      { wch: 15 }, // E열 (완료예정일)
+      { wch: 10 }, // F열 (달성율 금주)
+      { wch: 10 }, // G열 (달성율 전체)
+      { wch: 15 }, // H열 (PM)
+    ];
+
+    // 4. 셀 병합 설정 (s: start, e: end, r: row, c: col)
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+      { s: { r: 1, c: 0 }, e: { r: 2, c: 0 } }, // '구분' 세로 병합
+      { s: { r: 1, c: 1 }, e: { r: 1, c: 1 } }, // '다음주 날짜' (단일)
+      { s: { r: 1, c: 2 }, e: { r: 1, c: 3 } }, // '이번주 날짜' 가로 병합
+      { s: { r: 1, c: 4 }, e: { r: 1, c: 4 } }, // '완료예정일' 세로 병합
+      { s: { r: 1, c: 5 }, e: { r: 1, c: 6} }, // '달성율' 가로 병합
+      { s: { r: 1, c: 7 }, e: { r: 2, c: 7 } }, // 'PM' 세로 병합
+    ];
+
+
+    // 2. 바디 스타일 적용 루프
+    reportData.forEach((row, rowIndex) => {
+      const excelRowIndex = rowIndex + 3; // 헤더가 2줄이므로 +2 (0, 1은 헤더)
+      
+      // 조건에 따른 스타일 선택 (금주/전체 100% 여부)
+      const isCompleted = row.progress === "100" && row.allprogress === "100";
+      const selectedStyle = isCompleted ? bodyStyle_G : bodyStyle_W;
+
+      // A열부터 H열까지 스타일 적용 (0~7)
+      ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((col, index) => {
+        const cellRef = `${col}${excelRowIndex + 1}`; // 엑셀 주소 (A3, B3...)
+        if (ws[cellRef]) {
+          ws[cellRef].s = (index === 0 || index === 4 || index === 5 || index === 6 || index === 7)
+                           ? isCompleted ? bodyStyle_GG : bodyStyle_A :selectedStyle;
+        }
+      });
+    });
+
+    
+    // 1. 데이터가 끝나는 지점 계산 (헤더 2줄 + 데이터 개수)
+    const startRow = reportData.length + 4; 
+
+    // 2. 하단 라벨(라벨 행) 추가 - 병합될 것이므로 칸을 띄워서 배치
+    // 메모가 E, F, G, H(4칸)를 차지하므로 전체 8칸을 채웁니다.
+    const footerHeaders = [["정보보고", "", "이슈", "", "메모", "", "", ""]]; // A~H (8개)
+    XLSX.utils.sheet_add_aoa(ws, footerHeaders, { origin: `A${startRow + 1}` });
+    
+    const footerContents = [[infoContent, "", issueContent, "", memoContent, "", "", ""]]; // A~H (8개)
+    XLSX.utils.sheet_add_aoa(ws, footerContents, { origin: `A${startRow + 2}` });
+
+    // 4. 스타일 적용 (병합될 모든 칸 A~F에 스타일을 입혀야 테두리가 안 깨짐)
+    const footerCols = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+    footerCols.forEach((col) => {
+      const headerRef = `${col}${startRow + 1}`;
+      const dataRef = `${col}${startRow + 2}`;
+
+      // 셀이 없으면 빈 셀이라도 생성해서 스타일 주입
+      if (!ws[headerRef]) ws[headerRef] = { t: "s", v: "" };
+      if (!ws[dataRef]) ws[dataRef] = { t: "s", v: "" };
+
+      // 2. 열(Col)에 따라 헤더 스타일 분기 처리
+      let currentHeaderStyle;
+      
+      if (col === "A" || col === "B") {
+        currentHeaderStyle = memoHeaderStyle1; // 파란색 (정보보고)
+      } else if (col === "C" || col === "D") {
+        currentHeaderStyle = memoHeaderStyle2; // 붉은색 (이슈)
+      } else {
+        currentHeaderStyle = memoHeaderStyle3; // 노란색 (메모 E,F,G,H)
+      }
+
+      // 스타일 입히기
+      ws[headerRef].s = currentHeaderStyle;
+      ws[dataRef].s = memoDataStyle;
+    });
+
+    const contentrow = startRow + 1;
+
+    ws['!rows'] = ws['!rows'] || [];
+    ws['!rows'][contentrow] = { hpt: 150 };    // ★ 이 값을 150~200 정도로 크게 늘려보세요!
+
+    // 5. 셀 병합 설정 (s: start, e: end / r: row, c: col)
+    if (!ws['!merges']) ws['!merges'] = [];
+
+    ws['!merges'].push(
+      // 라벨 행 병합
+      { s: { r: startRow, c: 0 }, e: { r: startRow, c: 1 } }, // A-B (정보보고 라벨)
+      { s: { r: startRow, c: 2 }, e: { r: startRow, c: 3 } }, // C-D (이슈 라벨)
+      { s: { r: startRow, c: 4 }, e: { r: startRow, c: 7 } }, // E-F (메모 라벨 4칸병합)
+      
+      // 내용 행 병합
+      { s: { r: startRow + 1, c: 0 }, e: { r: startRow + 1, c: 1 } }, // A-B (정보보고 내용)
+      { s: { r: startRow + 1, c: 2 }, e: { r: startRow + 1, c: 3 } }, // C-D (이슈 내용)
+      { s: { r: startRow + 1, c: 4 }, e: { r: startRow + 1, c: 7 } }  // E-F (메모 내용)
+    );
+
+
+    // 5. 파일 생성 및 다운로드
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "주간보고");
+    XLSX.writeFile(wb, `주간업무보고_${week}(${userName}).xlsx`);
+  };
+
+
 
   return (
     <div className={styles.mainContainer}>
@@ -936,8 +1443,8 @@ const MainPage: React.FC = () => {
               New
             </button> */}
             {/* 행 추가 버튼 */}
-            <button className={styles.excelButton} onClick={onExportToExcel}>
-              엑셀 저장
+            <button className={styles.excelButton} onClick={exportToExcel}>
+              엑셀 내보내기
             </button>
 
             {selectedPart?.value === userTeam && (
@@ -950,6 +1457,17 @@ const MainPage: React.FC = () => {
                 Row Add
               </button>
             )}
+            
+            <button className={styles.importButton} onClick={warnning}>
+              엑셀 불러오기
+            </button>
+            <input
+              id="excel-upload"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleImportExcel}
+              style={{ display: 'none' }}
+            />
 
             {/* 저장 버튼 */}
             {(selectedPart?.value === userTeam || userRank === 1 || userRank === 2 ) && (
@@ -1130,10 +1648,30 @@ const MainPage: React.FC = () => {
                 padding: "0.5rem",
                 boxShadow: "2px 2px 5px rgba(0,0,0,0.2)",
                 cursor: "pointer",
+                zIndex: 1000, // 메뉴가 다른 요소 밑에 깔리지 않도록 방지
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.3rem", // 버튼 사이 간격
               }}
-              onClick={handleDeleteRow} // 삭제 버튼 클릭 시 마지막 행 삭제
             >
-              행 삭제
+              {/* 행 추가 버튼 */}
+              <div 
+                onClick={handleAddRow2}
+                style={{ padding: "4px 8px" }}
+              >
+                행 추가 (아래로)
+              </div>
+
+              {/* 구분선 (선택사항) */}
+              <div style={{ borderBottom: "1px solid #eee" }}></div>
+
+              {/* 행 삭제 버튼 */}
+              <div 
+                onClick={handleDeleteRow}
+                style={{ padding: "4px 8px", color: "red" }}
+              >
+                행 삭제
+              </div>
             </div>
           )}
         </div>

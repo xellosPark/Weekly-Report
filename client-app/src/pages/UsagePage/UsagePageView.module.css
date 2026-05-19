@@ -1,0 +1,6 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 60px;
+  height: 95vh;
+}

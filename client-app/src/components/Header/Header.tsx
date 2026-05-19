@@ -23,6 +23,10 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
     console.log("비밀번호 변경 클릭됨!");
     setShowChangePassword(true); // 모달 열기
   };
+  
+  const onUsagePageView = () => {
+     navigate("/UsageStatus");
+  }
 
   return (
     <header className={styles.header}>
@@ -35,8 +39,14 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
           <BsRss className={styles.navbarLogoIcon} />
         </div>
       </div>
+      <div className={styles.headerMenuView}>
+        <div className={styles.headerMenu} onClick={onUsagePageView}>
+          View
+        </div>
+      </div>
       {/* styles로 CSS 클래스 적용 */}
       <div className={styles["header-content"]}>
+        
         {/* CSS 모듈에서 클래스를 사용 */}
         <span className={styles["time-remaining"]}>{timeRemaining}</span>
         <label className={styles.huserinfo}>

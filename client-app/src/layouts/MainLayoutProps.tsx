@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SidebarLayout from "../components/SidebarLayout/SidebarLayout"; // 사이드바 컴포넌트 import
 import Header from "../components/Header/Header"; // 헤더 컴포넌트 import
-
+import { useAuth } from "../context/AuthContext";
 interface MainLayoutProps {
   children: React.ReactNode;
   onLogout: () => void; // 로그아웃 함수
@@ -10,9 +10,10 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const sidebarWidth = isMinimized ? 40 : 150;
+    const { isAuth, userId, userTeam, userRank, userSite, logout } = useAuth();
 
   // ✅ 자동 로그아웃 타이머 상태
-  const [timeRemaining, setTimeRemaining] = useState<number>(1200); // 초기값: 30분 (1800초)
+  const [timeRemaining, setTimeRemaining] = useState<number>(1800); // 초기값: 30분 (1800초)
   const [lastActionTime, setLastActionTime] = useState<number>(Date.now()); // 마지막 입력 시간
 
   // ✅ 사용자의 입력(키보드 & 마우스)을 감지하는 함수
@@ -23,14 +24,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout }) => {
   // ✅ 타이머 업데이트 함수 (1초마다 실행)
   const updateTimer = () => {
     const elapsedTime = Math.floor((Date.now() - lastActionTime) / 1000); // 경과 시간(초)
-    const remainingTime = 1200 - elapsedTime; // 남은 시간 계산
-
-    if (remainingTime <= 0) {
-      console.log("⏳ 30분 동안 입력 없음 → 자동 로그아웃 실행");
-      onLogout(); // 자동 로그아웃 실행
-      setTimeRemaining(1200); // 타이머 초기화
-    } else {
-      setTimeRemaining(remainingTime); // 남은 시간 갱신
+    const remainingTime = 1800 - elapsedTime; // 남은 시간 계산
+    //if (userId !== 10)
+    {
+      if (remainingTime <= 0) {
+        console.log("⏳ 30분 동안 입력 없음 → 자동 로그아웃 실행");
+        onLogout(); // 자동 로그아웃 실행
+        setTimeRemaining(1200); // 타이머 초기화
+      } else {
+        setTimeRemaining(remainingTime); // 남은 시간 갱신
+      }
     }
   };
 

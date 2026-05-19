@@ -106,7 +106,24 @@
 
 /* 버튼 호버 효과 */
 .excelButton:hover {
-  background: #fdf5ab;
+  background: #d47e1b;
+}
+
+.importButton {
+  background: #81c93e; /* 투명 배경 */
+  color: white;
+  font-size: 0.9em;
+  padding: 0.5em 1em;
+  border: 1px solid #7fc241; /* 외각 테두리 */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-right: 1em;
+}
+
+/* 버튼 호버 효과 */
+.importButton:hover {
+  background: #7fc241;
 }
 
 .rowAddButton {

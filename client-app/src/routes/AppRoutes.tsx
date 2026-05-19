@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import MainLayout from "../layouts/MainLayoutProps";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import Dashboard from "../pages/MainPage/MainPage";
+import UsagePageView from "../pages/UsagePage/UsagePageView";
 
 const AppRoutes = () => {
   const { isAuth, logout } = useAuth();
@@ -30,6 +31,15 @@ const AppRoutes = () => {
           )
         }
       />
+      <Route path="/UsageStatus" element={
+          isAuth ? (
+            <MainLayout onLogout={handleLogout}>
+              <UsagePageView />
+            </MainLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }/>
     </Routes>
   );
 };
