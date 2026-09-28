@@ -1,13 +1,14 @@
 {
   "files": {
-    "main.css": "/static/css/main.9ab69805.css",
-    "main.js": "/static/js/main.24a4294f.js",
+    "main.css": "/static/css/main.5a42a948.css",
+    "main.js": "/static/js/main.a923c13c.js",
+    "static/media/LG_Electronics_Gradient_01_RGB.jpg": "/static/media/LG_Electronics_Gradient_01_RGB.3d85d5ea66315ab5beac.jpg",
     "index.html": "/index.html",
-    "main.9ab69805.css.map": "/static/css/main.9ab69805.css.map",
-    "main.24a4294f.js.map": "/static/js/main.24a4294f.js.map"
+    "main.5a42a948.css.map": "/static/css/main.5a42a948.css.map",
+    "main.a923c13c.js.map": "/static/js/main.a923c13c.js.map"
   },
   "entrypoints": [
-    "static/css/main.9ab69805.css",
-    "static/js/main.24a4294f.js"
+    "static/css/main.5a42a948.css",
+    "static/js/main.a923c13c.js"
   ]
 }

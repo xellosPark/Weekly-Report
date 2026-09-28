@@ -19,7 +19,7 @@ npm install @nestjs/passport@10.0.3 passport-jwt@4.0.1 @nestjs/jwt@10.0.2
 JwtStrategy가 호출되어 토큰 검증 후 사용자 정보를 반환
 검증이 성공하면 요청이 정상적으로 처리됨.
 
-cp -r ./client-app/build ./server/public
+cp -r ./client/build ./server/public
 
 @ManyToOne,@OneToMany,@OneToOne,@ManyToMany
 

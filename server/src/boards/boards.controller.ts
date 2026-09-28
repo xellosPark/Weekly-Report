@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { BoardDto } from './dto/create-board.dto';
 import { Response } from 'express';
@@ -84,7 +84,7 @@ export class BoardsController {
         //console.log('board', createBoardDto);
 
         const exist = await this.boardsService.existBoard(createBoardDto, id);
-        console.log('board 존재', exist, userId, id);
+        //console.log('board 존재', exist);
 
         if ((exist === undefined || exist === null) && userId !== id) {
             console.log('게시물 추가 x');
@@ -104,8 +104,6 @@ export class BoardsController {
         }
         
     }
-
-    
 
     // @Post()
     // async test(@Res() res: Response) {

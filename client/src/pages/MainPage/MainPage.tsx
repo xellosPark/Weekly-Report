@@ -672,7 +672,7 @@ const MainPage: React.FC = () => {
       alert("해당 주차의 데이터가 없습니다");
       return;
     }
-    const transformedData = transData(filterData[0]);
+    const transformedData = transDataCopy(filterData[0]);
 
     // 변환된 데이터를 setReportData에 저장
     setReportData(transformedData);
@@ -773,6 +773,46 @@ const MainPage: React.FC = () => {
       .split("^^")
       .map((item) => item.trim());
     const progress = loadData.achievementRate
+      .split("^^")
+      .map((item) => item.trim());
+    const allprogress = loadData.totalRate
+      .split("^^")
+      .map((item) => item.trim());
+    const pm = loadData?.pm
+      ? loadData.pm.split("^^").map((item) => item.trim())
+      : [];
+
+    // ✅ 배열을 순회하면서 개별 객체 생성
+    const transformedData = categories.map((_, index) => ({
+      category: categories[index] || "",
+      weeklyPlan: weeklyPlan[index] || "",
+      prevPlan: prevPlan[index] || "",
+      prevResult: prevResult[index] || "",
+      completion: completion[index] || "",
+      progress: progress[index] || "",
+      allprogress: allprogress[index] || "",
+      pm: pm[index] || "",
+    }));
+
+    return transformedData;
+  };
+
+  const transDataCopy = (loadData: Board) => {
+    // ✅ 쉼표(,)로 구분된 데이터를 개별 배열로 변환l
+    const categories = loadData.category.split("^^").map((item) => item.trim());
+    const weeklyPlan = "" //loadData.currentWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevPlan = loadData.currentWeekPlan //loadData.previousWeekPlan
+      .split("^^")
+      .map((item) => item.trim());
+    const prevResult = "" //loadData.performance
+      .split("^^")
+      .map((item) => item.trim());
+    const completion = loadData.completionDate
+      .split("^^")
+      .map((item) => item.trim());
+    const progress = "" //loadData.achievementRate
       .split("^^")
       .map((item) => item.trim());
     const allprogress = loadData.totalRate

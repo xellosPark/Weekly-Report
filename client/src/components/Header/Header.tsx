@@ -39,11 +39,11 @@ const Header: React.FC<HeaderProps> = ({ timeRemaining, onLogout }) => {
           <BsRss className={styles.navbarLogoIcon} />
         </div>
       </div>
-      <div className={styles.headerMenuView}>
+      {/* <div className={styles.headerMenuView}>
         <div className={styles.headerMenu} onClick={onUsagePageView}>
           View
         </div>
-      </div>
+      </div> */}
       {/* styles로 CSS 클래스 적용 */}
       <div className={styles["header-content"]}>
         

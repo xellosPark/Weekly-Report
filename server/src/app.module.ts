@@ -8,7 +8,10 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), // isGlobal 옵션을 true로 설정하여 ConfigModule을 전역적으로 사용 가능하게 함.
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`], // NODE_ENV 값에 따라 환경파일 적용
+    }), // isGlobal 옵션을 true로 설정하여 ConfigModule을 전역적으로 사용 가능하게 함.
     TypeOrmModule.forRoot(typeORMConfig),
     BoardsModule,
     AuthModule,
