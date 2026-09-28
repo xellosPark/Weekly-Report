@@ -1,11 +1,10 @@
 services:
   db:
     image: postgres:17-alpine
+    container_name: weekly-db
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - server/.env
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./postgres_20260927_011044.dump:/docker-entrypoint-initdb.d/dump.dump:ro
@@ -20,17 +19,10 @@ services:
 
   server:
     build: ./server
+    container_name: weekly-server
     restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV}
-      PORT: ${PORT}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
-      REFRESH_SECRET: ${REFRESH_SECRET}
+    env_file:
+      - server/.env
     depends_on:
       db:
         condition: service_healthy
@@ -39,6 +31,7 @@ services:
 
   client:
     build: ./client
+    container_name: weekly-client
     restart: unless-stopped
     depends_on:
       - server
